@@ -1,14 +1,13 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
+	"github.com/thetredev/steamcmd-cli/client"
 )
 
 var logsCmd = &cobra.Command{
 	Use:   "logs",
-	Short: "Client subcommand retrieve certain logs from the daemon socket",
+	Short: "Retrieve game server logs from the daemon socket",
 	Long:  `A longer description`,
 	Run:   logsCallback,
 }

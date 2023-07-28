@@ -7,7 +7,7 @@ import (
 
 var daemonCmd = &cobra.Command{
 	Use:   "daemon",
-	Short: "Run the server daemon",
+	Short: "Run the daemon socket",
 	Long:  `A longer description`,
 	Run:   daemonCallback,
 }

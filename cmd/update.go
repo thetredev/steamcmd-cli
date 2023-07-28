@@ -7,7 +7,7 @@ import (
 
 var updateCmd = &cobra.Command{
 	Use:   "update",
-	Short: "Client subcommand update the game server via the daemon socket",
+	Short: "Update the game server via the daemon socket",
 	Long:  `A longer description`,
 	Run:   updateCallback,
 }

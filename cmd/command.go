@@ -7,7 +7,7 @@ import (
 
 var commandCmd = &cobra.Command{
 	Use:   "command",
-	Short: "Client subcommand send commands to the game server console via the daemon socket",
+	Short: "Send commands to the game server console via the daemon socket",
 	Long:  `A longer description`,
 	Run:   commandCallback,
 }

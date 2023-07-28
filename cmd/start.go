@@ -7,7 +7,7 @@ import (
 
 var startCmd = &cobra.Command{
 	Use:   "start",
-	Short: "Client subcommand start the game server via the daemon socket",
+	Short: "Start the game server via the daemon socket",
 	Long:  `A longer description`,
 	Run:   startCallback,
 }
