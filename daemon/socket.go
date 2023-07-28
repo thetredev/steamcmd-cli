@@ -68,14 +68,10 @@ func StartSocket() {
 	}
 }
 
-func handleCommandMessage(receiver *net.UDPAddr, command string) {
-	SendConsoleCommand(receiver, command)
-}
-
 func handleSpecialMessage(receiver *net.UDPAddr, message string) bool {
 	if strings.HasPrefix(message, "command") {
 		command := strings.Join(strings.Split(message, " ")[1:], " ")
-		handleCommandMessage(receiver, command)
+		SendConsoleCommand(receiver, command)
 		return true
 	}
 
