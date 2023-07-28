@@ -68,11 +68,6 @@ func StartSocket() {
 	}
 }
 
-// TODO: Call this on SIGTERM/SIGQUIT/SIGKILL
-func stopSocket() {
-	socket.Close()
-}
-
 func handleCommandMessage(receiver *net.UDPAddr, command string) {
 	SendConsoleCommand(receiver, command)
 }
