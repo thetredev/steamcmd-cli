@@ -23,7 +23,7 @@ var serverConsoleInput chan string
 var serverConsoleOutput []string
 
 func init() {
-	serverConsoleInput = make(chan string, 4)
+	serverConsoleInput = make(chan string)
 }
 
 func isSRCDS() bool {
