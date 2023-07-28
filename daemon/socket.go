@@ -36,8 +36,9 @@ func StartSocket() {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("[SteamCMD CLI] Daemon socket port: %d\n", socket.LocalAddr().(*net.UDPAddr).Port)
-	fmt.Println("[SteamCMD CLI] Listening for incoming requests...")
+	logger := log.Default()
+	logger.Printf("Daemon socket port: %d\n", socket.LocalAddr().(*net.UDPAddr).Port)
+	logger.Println("Listening for incoming requests...")
 
 	for {
 		buffer := make([]byte, 256)
