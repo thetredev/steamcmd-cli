@@ -43,6 +43,10 @@ func serverConsoleInputListener(commandChannel <-chan string) {
 			serverConsole.WriteString(fmt.Sprintf("%s\n", command))
 
 			if command == "quit" {
+				startCommand.Wait()
+				startCommand = nil
+				serverConsole = nil
+				serverConsoleOutput = make([]string, 0)
 				return
 			}
 		}
@@ -131,11 +135,6 @@ func StartServer(receiver *net.UDPAddr) {
 
 func StopServer(receiver *net.UDPAddr) {
 	SendConsoleCommand(receiver, "quit")
-
-	startCommand.Wait()
-	startCommand = nil
-	serverConsole = nil
-	serverConsoleOutput = make([]string, 0)
 }
 
 func UpdateServer(receiver *net.UDPAddr) {
