@@ -1,10 +1,6 @@
 package cmd
 
-import (
-	"fmt"
-
-	"github.com/spf13/cobra"
-)
+import "github.com/spf13/cobra"
 
 var clientCmd = &cobra.Command{
 	Use:   "client",
@@ -18,5 +14,5 @@ func init() {
 }
 
 func clientCallback(cmd *cobra.Command, args []string) {
-	fmt.Println("client called")
+	cmd.Help()
 }
