@@ -93,8 +93,10 @@ func sendConsoleReplies(receiver *net.UDPAddr, command string) {
 }
 
 func SendConsoleCommand(receiver *net.UDPAddr, command string) {
-	serverConsoleInput <- command
-	sendConsoleReplies(receiver, command)
+	if startCommand != nil && serverConsole != nil {
+		serverConsoleInput <- command
+		sendConsoleReplies(receiver, command)
+	}
 }
 
 func StartServer(receiver *net.UDPAddr) {
