@@ -140,6 +140,11 @@ func StopServer(receiver *net.UDPAddr) {
 }
 
 func UpdateServer(receiver *net.UDPAddr) {
+	if startCommand != nil && serverConsole != nil {
+		SendSocketResponseMessage(receiver, "Server is running, cannot update. Ignoring...")
+		return
+	}
+
 	if len(Config.Application) == 0 {
 		log.Fatal("STEAMCMD_SH not set")
 	}

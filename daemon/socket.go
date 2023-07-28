@@ -57,9 +57,7 @@ func StartSocket() {
 		case "stop":
 			StopServer(receiver)
 		case "update":
-			StopServer(receiver)
 			UpdateServer(receiver)
-			StartServer(receiver)
 		default:
 			if !handleSpecialMessage(receiver, message) {
 				SendSocketResponseMessage(receiver, fmt.Sprintf("Invalid command: %s; ignoring...\n", message))
