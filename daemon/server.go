@@ -16,7 +16,7 @@ import (
 
 const serverConsoleInputDelay time.Duration = 250 * time.Millisecond
 
-var startCommand *exec.Cmd = nil
+var serverCommand *exec.Cmd = nil
 
 var serverConsole *os.File = nil
 var serverConsoleInput chan string
@@ -43,8 +43,8 @@ func serverConsoleInputListener(commandChannel <-chan string) {
 			serverConsole.WriteString(fmt.Sprintf("%s\n", command))
 
 			if command == "quit" {
-				startCommand.Wait()
-				startCommand = nil
+				serverCommand.Wait()
+				serverCommand = nil
 				serverConsole = nil
 				serverConsoleOutput = make([]string, 0)
 				return
@@ -93,15 +93,15 @@ func sendConsoleReplies(receiver *net.UDPAddr, command string) {
 }
 
 func SendConsoleCommand(receiver *net.UDPAddr, command string) {
-	if startCommand != nil && serverConsole != nil {
+	if serverCommand != nil && serverConsole != nil {
 		serverConsoleInput <- command
 		sendConsoleReplies(receiver, command)
 	}
 }
 
 func StartServer(receiver *net.UDPAddr) {
-	if startCommand != nil {
-		SendSocketResponseMessage(receiver, fmt.Sprintf("Server already running (PID: %d)", startCommand.Process.Pid))
+	if serverCommand != nil {
+		SendSocketResponseMessage(receiver, fmt.Sprintf("Server already running (PID: %d)", serverCommand.Process.Pid))
 		return
 	}
 
@@ -109,21 +109,21 @@ func StartServer(receiver *net.UDPAddr) {
 		log.Fatal("STEAMCMD_SERVER_HOME is set to a nonexistent path")
 	}
 
-	startCommand = exec.Command(
+	serverCommand = exec.Command(
 		"bash", "-c",
 		"./srcds_linux -console -game cstrike +ip 0.0.0.0 -port 27019 +maxplayers 12 +map de_dust2 -tickrate 128 -threads 3 -nodev",
 	)
 
-	startCommand.Env = os.Environ()
-	startCommand.Env = append(startCommand.Env,
+	serverCommand.Env = os.Environ()
+	serverCommand.Env = append(serverCommand.Env,
 		fmt.Sprintf("LD_LIBRARY_PATH=.:./bin:%s", os.Getenv("LD_LIBRARY_PATH")),
 		"RESTART=no",
 	)
 
-	startCommand.Dir = Config.ServerHome
+	serverCommand.Dir = Config.ServerHome
 
 	var err error
-	serverConsole, err = pty.Start(startCommand)
+	serverConsole, err = pty.Start(serverCommand)
 
 	if err != nil {
 		log.Fatal(err)
@@ -140,7 +140,7 @@ func StopServer(receiver *net.UDPAddr) {
 }
 
 func UpdateServer(receiver *net.UDPAddr) {
-	if startCommand != nil && serverConsole != nil {
+	if serverCommand != nil && serverConsole != nil {
 		SendSocketResponseMessage(receiver, "Server is running, cannot update. Ignoring...")
 		return
 	}
