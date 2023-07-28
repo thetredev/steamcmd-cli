@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/thetredev/steamcmd-cli/client"
+	"github.com/thetredev/steamcmd-cli/server"
 )
 
 var stopCmd = &cobra.Command{
@@ -13,9 +13,9 @@ var stopCmd = &cobra.Command{
 }
 
 func init() {
-	clientCmd.AddCommand(stopCmd)
+	serverCmd.AddCommand(stopCmd)
 }
 
 func stopCallback(cmd *cobra.Command, args []string) {
-	client.SendMessageToSocket("stop")
+	server.SendMessageToSocket("stop")
 }

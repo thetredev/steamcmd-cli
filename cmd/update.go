@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/thetredev/steamcmd-cli/client"
+	"github.com/thetredev/steamcmd-cli/server"
 )
 
 var updateCmd = &cobra.Command{
@@ -13,9 +13,9 @@ var updateCmd = &cobra.Command{
 }
 
 func init() {
-	clientCmd.AddCommand(updateCmd)
+	serverCmd.AddCommand(updateCmd)
 }
 
 func updateCallback(cmd *cobra.Command, args []string) {
-	client.SendMessageToSocket("update")
+	server.SendMessageToSocket("update")
 }
