@@ -18,5 +18,5 @@ func init() {
 }
 
 func logsCallback(cmd *cobra.Command, args []string) {
-	fmt.Println("logs called")
+	client.SendMessageToSocket("logs")
 }

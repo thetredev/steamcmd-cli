@@ -50,9 +50,7 @@ func StartSocket() {
 		message := strings.Split(string(buffer), "\n")[0]
 
 		switch message {
-		case "logs/application":
-			SendSocketResponseMessage(receiver, ApplicationLogs())
-		case "logs/server":
+		case "logs":
 			SendServerLogs(receiver)
 		case "start":
 			StartServer(receiver)
