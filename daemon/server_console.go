@@ -3,8 +3,8 @@ package daemon
 import (
 	"bufio"
 	"fmt"
-	"net"
 	"os"
+	"time"
 )
 
 type ServerConsole struct {
@@ -52,7 +52,7 @@ func (console *ServerConsole) ListenForOutput() {
 	}
 }
 
-func (console *ServerConsole) SendCommandReplies(socket *Socket, receiver *net.UDPAddr, command string) {
+func (console *ServerConsole) SendCommandReplies(socket *Socket, command string) {
 	// get all console replies in reverse order to save CPU cycles and memory
 	reversedLines := []string{}
 
@@ -68,16 +68,19 @@ func (console *ServerConsole) SendCommandReplies(socket *Socket, receiver *net.U
 
 	// send all console replies to receiver in correct order
 	for i := len(reversedLines) - 1; i > -1; i-- {
-		socket.SendMessage(receiver, reversedLines[i])
+		socket.SendMessage(reversedLines[i])
 	}
 }
 
-func (console *ServerConsole) SendLogs(socket *Socket, receiver *net.UDPAddr) int {
+func (console *ServerConsole) SendLogs(socket *Socket) int {
+	const tcpCongestionPreventionDelay = time.Millisecond * 1
 	bytes := 0
 
 	for _, line := range console.Output {
-		socket.SendMessage(receiver, line)
+		socket.SendMessage(line)
 		bytes += len(line)
+
+		time.Sleep(tcpCongestionPreventionDelay)
 	}
 
 	return bytes

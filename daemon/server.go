@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net"
 	"os"
 	"os/exec"
 	"time"
@@ -37,11 +36,15 @@ func (server *Server) Delete() {
 	server.Command = nil
 }
 
-func (server *Server) Update(socket *Socket, receiver *net.UDPAddr) error {
-	server.Logger.Printf("Received request to update the game server from %v\n", receiver)
+func (server *Server) Update(socket *Socket) error {
+	server.Logger.Println("Received request to update the game server")
 
 	if server.IsRunning() {
-		return errors.New("Server is running, cannot update. Ignoring...")
+		message := "Server is currently running, cannot update."
+
+		socket.SendMessage(message)
+		server.Logger.Println("Ignoring:", message)
+		return nil
 	}
 
 	server.Logger.Println("Updating the game server...")
@@ -83,7 +86,7 @@ func (server *Server) Update(socket *Socket, receiver *net.UDPAddr) error {
 		scanner := bufio.NewScanner(ptyFile)
 
 		for scanner.Scan() {
-			socket.SendMessage(receiver, scanner.Text())
+			socket.SendMessage(scanner.Text())
 		}
 	}()
 
@@ -91,13 +94,13 @@ func (server *Server) Update(socket *Socket, receiver *net.UDPAddr) error {
 	return nil
 }
 
-func (server *Server) Start(socket *Socket, receiver *net.UDPAddr) error {
-	server.Logger.Printf("Received request to start the game server from %v\n", receiver)
+func (server *Server) Start(socket *Socket) error {
+	server.Logger.Println("Received request to start the game server")
 
 	if server.IsRunning() {
 		message := fmt.Sprintf("Server already running (PID: %d)", server.Command.Process.Pid)
 
-		socket.SendMessage(receiver, message)
+		socket.SendMessage(message)
 		server.Logger.Println("Ignoring:", message)
 	}
 
@@ -133,9 +136,9 @@ func (server *Server) Start(socket *Socket, receiver *net.UDPAddr) error {
 	return nil
 }
 
-func (server *Server) Stop(socket *Socket, receiver *net.UDPAddr) {
-	server.Logger.Printf("Received request to stop the game server from %v\n", receiver)
-	server.DispatchConsoleCommand(socket, receiver, "quit")
+func (server *Server) Stop(socket *Socket) {
+	server.Logger.Println("Received request to stop the game server")
+	server.DispatchConsoleCommand(socket, "quit")
 }
 
 func (server *Server) IsRunning() bool {
@@ -152,24 +155,24 @@ func (server *Server) IsCSGO() bool {
 	return false
 }
 
-func (server *Server) SendLogs(socket *Socket, receiver *net.UDPAddr) {
-	server.Logger.Printf("Received request to send game server logs to %v\n", receiver)
+func (server *Server) SendLogs(socket *Socket) {
+	server.Logger.Println("Received request to send game server logs")
 
 	if server.IsRunning() {
-		server.Logger.Printf("Sending game server logs to %v...\n", receiver)
+		server.Logger.Println("Sending game server logs")
 
-		bytes := server.Console.SendLogs(socket, receiver)
-		server.Logger.Printf("Sent %d bytes (%d lines) of game server logs to %v\n", bytes, len(server.Console.Output), receiver)
+		bytes := server.Console.SendLogs(socket)
+		server.Logger.Printf("Sent %d bytes (%d lines) of game server logs", bytes, len(server.Console.Output))
 	} else {
 		server.Logger.Println("Ignoring: Nothing to send.")
 	}
 }
 
-func (server *Server) DispatchConsoleCommand(socket *Socket, receiver *net.UDPAddr, command string) {
-	server.Logger.Printf("Received server command '%s' from %v\n", command, receiver)
+func (server *Server) DispatchConsoleCommand(socket *Socket, command string) {
+	server.Logger.Printf("Received server command '%s'\n", command)
 
 	if server.IsRunning() {
-		server.Logger.Printf("Sending server command '%s' from %v to game server console...\n", command, receiver)
+		server.Logger.Printf("Sending server command '%s' to game server console...\n", command)
 		server.Console.Input <- command
 
 		if command == "quit" {
@@ -179,8 +182,8 @@ func (server *Server) DispatchConsoleCommand(socket *Socket, receiver *net.UDPAd
 			// ensure the console replies are printed to as expected
 			time.Sleep(serverConsoleInputDelay)
 
-			server.Logger.Printf("Sending game server console replies for command '%s' to %v...\n", command, receiver)
-			server.Console.SendCommandReplies(socket, receiver, command)
+			server.Logger.Printf("Sending game server console replies for command '%s'...\n", command)
+			server.Console.SendCommandReplies(socket, command)
 		}
 	}
 }

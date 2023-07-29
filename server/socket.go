@@ -15,7 +15,7 @@ func SendMessage(message string, args ...string) {
 		log.Fatal("STEAMCMD_CLI_SOCKET_PORT not set")
 	}
 
-	socket, err := net.Dial("udp", fmt.Sprintf("127.0.0.1:%d", shared.Config.SocketPort))
+	socket, err := net.Dial("tcp", fmt.Sprintf("127.0.0.1:%d", shared.Config.SocketPort))
 
 	if err != nil {
 		log.Fatal(err)
@@ -44,4 +44,6 @@ func SendMessage(message string, args ...string) {
 			fmt.Print(message)
 		}
 	}
+
+	socket.Close()
 }

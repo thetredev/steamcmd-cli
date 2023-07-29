@@ -10,28 +10,30 @@ import (
 )
 
 type Socket struct {
-	Connection *net.UDPConn
+	Listener   *net.TCPListener
+	Connection *net.TCPConn
 }
 
 func NewSocket(ip string, port int) *Socket {
-	addr := net.UDPAddr{
+	addr := net.TCPAddr{
 		Port: shared.Config.SocketPort,
 		IP:   net.ParseIP(ip),
 	}
 
-	connection, err := net.ListenUDP("udp", &addr)
+	listener, err := net.ListenTCP("tcp", &addr)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	return &Socket{
-		Connection: connection,
+		Listener:   listener,
+		Connection: nil,
 	}
 }
 
-func (socket *Socket) SendMessage(receiver *net.UDPAddr, message string) {
-	_, err := socket.Connection.WriteToUDP([]byte(fmt.Sprintf("%s\n", message)), receiver)
+func (socket *Socket) SendMessage(message string) {
+	_, err := socket.Connection.Write([]byte(fmt.Sprintf("%s\n", message)))
 
 	if err != nil {
 		log.Fatal(err)
@@ -46,12 +48,14 @@ func StartSocket() {
 	socket := NewSocket("0.0.0.0", shared.Config.SocketPort)
 
 	server := NewServer()
-	server.Logger.Printf("Daemon socket port: %d\n", socket.Connection.LocalAddr().(*net.UDPAddr).Port)
-	server.Logger.Println("Listening for incoming requests...")
+	server.Logger.Printf("Listening for incoming requests on port %d/TCP...\n", shared.Config.SocketPort)
 
 	for {
+		var err error
+		socket.Connection, err = socket.Listener.AcceptTCP()
+
 		buffer := make([]byte, 256)
-		_, receiver, err := socket.Connection.ReadFromUDP(buffer)
+		_, err = socket.Connection.Read(buffer)
 
 		if err != nil {
 			log.Fatal(err)
@@ -61,31 +65,32 @@ func StartSocket() {
 
 		switch message {
 		case shared.ServerLogsMessage:
-			server.SendLogs(socket, receiver)
+			server.SendLogs(socket)
 		case shared.ServerStartMessage:
-			if err := server.Start(socket, receiver); err != nil {
+			if err := server.Start(socket); err != nil {
 				log.Fatal(err)
 			}
 		case shared.ServerStopMessage:
-			server.Stop(socket, receiver)
+			server.Stop(socket)
 		case shared.ServerUpdateMessage:
-			if err := server.Update(socket, receiver); err != nil {
+			if err := server.Update(socket); err != nil {
 				log.Fatal(err)
 			}
 		default:
-			if !handleSpecialMessage(server, socket, receiver, message) {
-				socket.SendMessage(receiver, fmt.Sprintf("Invalid command: %s; ignoring...\n", message))
+			if !handleSpecialMessage(server, socket, message) {
+				socket.SendMessage(fmt.Sprintf("Invalid command: %s; ignoring...\n", message))
 			}
 		}
 
-		socket.SendMessage(receiver, shared.SocketEndMessage)
+		socket.SendMessage(shared.SocketEndMessage)
+		socket.Connection.Close()
 	}
 }
 
-func handleSpecialMessage(serverInstance *Server, socket *Socket, receiver *net.UDPAddr, message string) bool {
+func handleSpecialMessage(serverInstance *Server, socket *Socket, message string) bool {
 	if strings.HasPrefix(message, shared.ServerCommandMessage) {
 		command := strings.Join(strings.Split(message, " ")[1:], " ")
-		serverInstance.DispatchConsoleCommand(socket, receiver, command)
+		serverInstance.DispatchConsoleCommand(socket, command)
 		return true
 	}
 
