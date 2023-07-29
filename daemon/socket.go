@@ -36,9 +36,9 @@ func StartSocket() {
 		log.Fatal(err)
 	}
 
-	logger := log.Default()
-	logger.Printf("Daemon socket port: %d\n", socket.LocalAddr().(*net.UDPAddr).Port)
-	logger.Println("Listening for incoming requests...")
+	server := NewServer()
+	server.Logger.Printf("Daemon socket port: %d\n", socket.LocalAddr().(*net.UDPAddr).Port)
+	server.Logger.Println("Listening for incoming requests...")
 
 	for {
 		buffer := make([]byte, 256)
@@ -52,15 +52,19 @@ func StartSocket() {
 
 		switch message {
 		case "logs":
-			SendServerLogs(receiver)
+			server.SendLogs(receiver)
 		case "start":
-			StartServer(receiver)
+			if err := server.Start(receiver); err != nil {
+				log.Fatal(err)
+			}
 		case "stop":
-			StopServer(receiver)
+			server.Stop(receiver)
 		case "update":
-			UpdateServer(receiver)
+			if err := server.Update(receiver); err != nil {
+				log.Fatal(err)
+			}
 		default:
-			if !handleSpecialMessage(receiver, message) {
+			if !handleSpecialMessage(server, receiver, message) {
 				SendSocketResponseMessage(receiver, fmt.Sprintf("Invalid command: %s; ignoring...\n", message))
 			}
 		}
@@ -69,10 +73,10 @@ func StartSocket() {
 	}
 }
 
-func handleSpecialMessage(receiver *net.UDPAddr, message string) bool {
+func handleSpecialMessage(serverInstance *Server, receiver *net.UDPAddr, message string) bool {
 	if strings.HasPrefix(message, "command") {
 		command := strings.Join(strings.Split(message, " ")[1:], " ")
-		SendConsoleCommand(receiver, command)
+		serverInstance.DispatchConsoleCommand(receiver, command)
 		return true
 	}
 
