@@ -11,11 +11,15 @@ import (
 )
 
 func SendMessage(message string, args ...string) {
+	if len(shared.Config.SocketIp) == 0 {
+		log.Fatal("STEAMCMD_CLI_SOCKET_IP not set")
+	}
+
 	if shared.Config.SocketPort <= 0 {
 		log.Fatal("STEAMCMD_CLI_SOCKET_PORT not set")
 	}
 
-	socket, err := net.Dial("tcp", fmt.Sprintf("127.0.0.1:%d", shared.Config.SocketPort))
+	socket, err := net.Dial("tcp", fmt.Sprintf("%s:%d", shared.Config.SocketIp, shared.Config.SocketPort))
 
 	if err != nil {
 		log.Fatal(err)

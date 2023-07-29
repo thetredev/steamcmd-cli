@@ -8,7 +8,8 @@ import (
 )
 
 type SharedConfig struct {
-	SocketPort int `env:"STEAMCMD_CLI_SOCKET_PORT,default=65000"`
+	SocketIp   string `env:"STEAMCMD_CLI_SOCKET_IP,default=127.0.0.1"`
+	SocketPort int    `env:"STEAMCMD_CLI_SOCKET_PORT,default=65000"`
 }
 
 var Config SharedConfig
