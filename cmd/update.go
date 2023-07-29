@@ -17,5 +17,5 @@ func init() {
 }
 
 func updateCallback(cmd *cobra.Command, args []string) {
-	server.SendMessageToSocket("update")
+	server.SendMessage("update")
 }

@@ -17,5 +17,5 @@ func init() {
 }
 
 func stopCallback(cmd *cobra.Command, args []string) {
-	server.SendMessageToSocket("stop")
+	server.SendMessage("stop")
 }

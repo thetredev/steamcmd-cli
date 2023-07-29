@@ -10,22 +10,17 @@ import (
 	"github.com/thetredev/steamcmd-cli/shared"
 )
 
-var socket net.Conn
-
-func init() {
+func SendMessage(message string, args ...string) {
 	if shared.Config.SocketPort <= 0 {
 		log.Fatal("STEAMCMD_CLI_SOCKET_PORT not set")
 	}
 
-	var err error
-	socket, err = net.Dial("udp", fmt.Sprintf("127.0.0.1:%d", shared.Config.SocketPort))
+	socket, err := net.Dial("udp", fmt.Sprintf("127.0.0.1:%d", shared.Config.SocketPort))
 
 	if err != nil {
 		log.Fatal(err)
 	}
-}
 
-func SendMessageToSocket(message string, args ...string) {
 	if len(args) == 0 {
 		fmt.Fprintf(socket, "%s\n", message)
 	} else {
