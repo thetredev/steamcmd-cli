@@ -39,7 +39,7 @@ func SendMessageToSocket(message string, args ...string) {
 		_, err := reader.Read(buffer)
 
 		if err != nil {
-			stopSocket()
+			socket.Close()
 			log.Fatal(err)
 		}
 
@@ -51,9 +51,4 @@ func SendMessageToSocket(message string, args ...string) {
 			fmt.Print(message)
 		}
 	}
-}
-
-// TODO: Call this on SIGTERM/SIGQUIT/SIGKILL
-func stopSocket() {
-	socket.Close()
 }
