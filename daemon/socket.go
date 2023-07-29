@@ -9,10 +9,29 @@ import (
 	"github.com/thetredev/steamcmd-cli/shared"
 )
 
-var socket *net.UDPConn
+type Socket struct {
+	Connection *net.UDPConn
+}
 
-func SendSocketResponseMessage(receiver *net.UDPAddr, message string) {
-	_, err := socket.WriteToUDP([]byte(fmt.Sprintf("%s\n", message)), receiver)
+func NewSocket(ip string, port int) *Socket {
+	addr := net.UDPAddr{
+		Port: shared.Config.SocketPort,
+		IP:   net.ParseIP(ip),
+	}
+
+	connection, err := net.ListenUDP("udp", &addr)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return &Socket{
+		Connection: connection,
+	}
+}
+
+func (socket *Socket) SendMessage(receiver *net.UDPAddr, message string) {
+	_, err := socket.Connection.WriteToUDP([]byte(fmt.Sprintf("%s\n", message)), receiver)
 
 	if err != nil {
 		log.Fatal(err)
@@ -24,25 +43,15 @@ func StartSocket() {
 		log.Fatal("STEAMCMD_CLI_SOCKET_PORT not set")
 	}
 
-	addr := net.UDPAddr{
-		Port: shared.Config.SocketPort,
-		IP:   net.ParseIP("0.0.0.0"),
-	}
-
-	var err error
-	socket, err = net.ListenUDP("udp", &addr)
-
-	if err != nil {
-		log.Fatal(err)
-	}
+	socket := NewSocket("0.0.0.0", shared.Config.SocketPort)
 
 	server := NewServer()
-	server.Logger.Printf("Daemon socket port: %d\n", socket.LocalAddr().(*net.UDPAddr).Port)
+	server.Logger.Printf("Daemon socket port: %d\n", socket.Connection.LocalAddr().(*net.UDPAddr).Port)
 	server.Logger.Println("Listening for incoming requests...")
 
 	for {
 		buffer := make([]byte, 256)
-		_, receiver, err := socket.ReadFromUDP(buffer)
+		_, receiver, err := socket.Connection.ReadFromUDP(buffer)
 
 		if err != nil {
 			log.Fatal(err)
@@ -52,31 +61,31 @@ func StartSocket() {
 
 		switch message {
 		case "logs":
-			server.SendLogs(receiver)
+			server.SendLogs(socket, receiver)
 		case "start":
-			if err := server.Start(receiver); err != nil {
+			if err := server.Start(socket, receiver); err != nil {
 				log.Fatal(err)
 			}
 		case "stop":
-			server.Stop(receiver)
+			server.Stop(socket, receiver)
 		case "update":
-			if err := server.Update(receiver); err != nil {
+			if err := server.Update(socket, receiver); err != nil {
 				log.Fatal(err)
 			}
 		default:
-			if !handleSpecialMessage(server, receiver, message) {
-				SendSocketResponseMessage(receiver, fmt.Sprintf("Invalid command: %s; ignoring...\n", message))
+			if !handleSpecialMessage(server, socket, receiver, message) {
+				socket.SendMessage(receiver, fmt.Sprintf("Invalid command: %s; ignoring...\n", message))
 			}
 		}
 
-		SendSocketResponseMessage(receiver, shared.SocketEndMessage)
+		socket.SendMessage(receiver, shared.SocketEndMessage)
 	}
 }
 
-func handleSpecialMessage(serverInstance *Server, receiver *net.UDPAddr, message string) bool {
+func handleSpecialMessage(serverInstance *Server, socket *Socket, receiver *net.UDPAddr, message string) bool {
 	if strings.HasPrefix(message, "command") {
 		command := strings.Join(strings.Split(message, " ")[1:], " ")
-		serverInstance.DispatchConsoleCommand(receiver, command)
+		serverInstance.DispatchConsoleCommand(socket, receiver, command)
 		return true
 	}
 

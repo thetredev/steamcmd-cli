@@ -37,7 +37,7 @@ func (server *Server) Delete() {
 	server.Command = nil
 }
 
-func (server *Server) Update(receiver *net.UDPAddr) error {
+func (server *Server) Update(socket *Socket, receiver *net.UDPAddr) error {
 	server.Logger.Printf("Received request to update the game server from %v\n", receiver)
 
 	if server.IsRunning() {
@@ -83,7 +83,7 @@ func (server *Server) Update(receiver *net.UDPAddr) error {
 		scanner := bufio.NewScanner(ptyFile)
 
 		for scanner.Scan() {
-			SendSocketResponseMessage(receiver, scanner.Text())
+			socket.SendMessage(receiver, scanner.Text())
 		}
 	}()
 
@@ -91,14 +91,14 @@ func (server *Server) Update(receiver *net.UDPAddr) error {
 	return nil
 }
 
-func (server *Server) Start(receiver *net.UDPAddr) error {
+func (server *Server) Start(socket *Socket, receiver *net.UDPAddr) error {
 	server.Logger.Printf("Received request to start the game server from %v\n", receiver)
 
 	if server.IsRunning() {
-		return errors.New(fmt.Sprintf("Server already running (PID: %d)", server.Command.Process.Pid))
+		message := fmt.Sprintf("Server already running (PID: %d)", server.Command.Process.Pid)
 
-		//server.Logger.Printf("Ignoring: %s\n", message)
-		//SendSocketResponseMessage(receiver, message)
+		socket.SendMessage(receiver, message)
+		server.Logger.Printf("Ignoring: %s\n", message)
 	}
 
 	if _, err := os.Stat(Config.ServerHome); os.IsNotExist(err) {
@@ -133,9 +133,9 @@ func (server *Server) Start(receiver *net.UDPAddr) error {
 	return nil
 }
 
-func (server *Server) Stop(receiver *net.UDPAddr) {
+func (server *Server) Stop(socket *Socket, receiver *net.UDPAddr) {
 	server.Logger.Printf("Received request to stop the game server from %v\n", receiver)
-	server.DispatchConsoleCommand(receiver, "quit")
+	server.DispatchConsoleCommand(socket, receiver, "quit")
 }
 
 func (server *Server) IsRunning() bool {
@@ -152,20 +152,20 @@ func (server *Server) IsCSGO() bool {
 	return false
 }
 
-func (server *Server) SendLogs(receiver *net.UDPAddr) {
+func (server *Server) SendLogs(socket *Socket, receiver *net.UDPAddr) {
 	server.Logger.Printf("Received request to send game server logs to %v\n", receiver)
 
 	if server.IsRunning() {
 		server.Logger.Printf("Sending game server logs to %v...\n", receiver)
 
-		bytes := server.Console.SendLogs(receiver)
+		bytes := server.Console.SendLogs(socket, receiver)
 		server.Logger.Printf("Sent %d bytes (%d lines) of game server logs to %v\n", bytes, len(server.Console.Output), receiver)
 	} else {
 		server.Logger.Println("Ignoring: Nothing to send.")
 	}
 }
 
-func (server *Server) DispatchConsoleCommand(receiver *net.UDPAddr, command string) {
+func (server *Server) DispatchConsoleCommand(socket *Socket, receiver *net.UDPAddr, command string) {
 	server.Logger.Printf("Received server command '%s' from %v\n", command, receiver)
 
 	if server.IsRunning() {
@@ -180,7 +180,7 @@ func (server *Server) DispatchConsoleCommand(receiver *net.UDPAddr, command stri
 			time.Sleep(serverConsoleInputDelay)
 
 			server.Logger.Printf("Sending game server console replies for command '%s' to %v...\n", command, receiver)
-			server.Console.SendCommandReplies(command, receiver)
+			server.Console.SendCommandReplies(socket, receiver, command)
 		}
 	}
 }

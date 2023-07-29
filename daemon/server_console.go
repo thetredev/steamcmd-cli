@@ -52,7 +52,7 @@ func (console *ServerConsole) ListenForOutput() {
 	}
 }
 
-func (console *ServerConsole) SendCommandReplies(command string, receiver *net.UDPAddr) {
+func (console *ServerConsole) SendCommandReplies(socket *Socket, receiver *net.UDPAddr, command string) {
 	// get all console replies in reverse order to save CPU cycles and memory
 	reversedLines := []string{}
 
@@ -68,15 +68,15 @@ func (console *ServerConsole) SendCommandReplies(command string, receiver *net.U
 
 	// send all console replies to receiver in correct order
 	for i := len(reversedLines) - 1; i > -1; i-- {
-		SendSocketResponseMessage(receiver, reversedLines[i])
+		socket.SendMessage(receiver, reversedLines[i])
 	}
 }
 
-func (console *ServerConsole) SendLogs(receiver *net.UDPAddr) int {
+func (console *ServerConsole) SendLogs(socket *Socket, receiver *net.UDPAddr) int {
 	bytes := 0
 
 	for _, line := range console.Output {
-		SendSocketResponseMessage(receiver, line)
+		socket.SendMessage(receiver, line)
 		bytes += len(line)
 	}
 
