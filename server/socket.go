@@ -21,12 +21,10 @@ func SendMessage(message string, args ...string) {
 		log.Fatal(err)
 	}
 
-	if len(args) == 0 {
-		fmt.Fprintf(socket, "%s\n", message)
-	} else {
-		fmt.Fprintf(socket, "%s %s\n", message, strings.Join(args, " "))
-	}
+	command := []string{message}
+	command = append(command, args...)
 
+	fmt.Fprintf(socket, "%s\n", strings.Join(command, " "))
 	reader := bufio.NewReader(socket)
 
 	for {
