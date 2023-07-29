@@ -60,15 +60,15 @@ func StartSocket() {
 		message := strings.Split(string(buffer), "\n")[0]
 
 		switch message {
-		case "logs":
+		case shared.ServerLogsMessage:
 			server.SendLogs(socket, receiver)
-		case "start":
+		case shared.ServerStartMessage:
 			if err := server.Start(socket, receiver); err != nil {
 				log.Fatal(err)
 			}
-		case "stop":
+		case shared.ServerStopMessage:
 			server.Stop(socket, receiver)
-		case "update":
+		case shared.ServerUpdateMessage:
 			if err := server.Update(socket, receiver); err != nil {
 				log.Fatal(err)
 			}
@@ -83,7 +83,7 @@ func StartSocket() {
 }
 
 func handleSpecialMessage(serverInstance *Server, socket *Socket, receiver *net.UDPAddr, message string) bool {
-	if strings.HasPrefix(message, "command") {
+	if strings.HasPrefix(message, shared.ServerCommandMessage) {
 		command := strings.Join(strings.Split(message, " ")[1:], " ")
 		serverInstance.DispatchConsoleCommand(socket, receiver, command)
 		return true
