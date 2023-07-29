@@ -16,6 +16,8 @@ import (
 
 const serverConsoleInputDelay time.Duration = 250 * time.Millisecond
 
+var logger log.Logger = *log.Default()
+
 var serverCommand *exec.Cmd = nil
 
 var serverConsole *os.File = nil
@@ -62,14 +64,27 @@ func serverConsoleOutputListener() {
 }
 
 func SendServerLogs(receiver *net.UDPAddr) {
+	logger.Printf("Received request to send game server logs to %v\n", receiver)
+
 	if serverConsoleOutput != nil {
+		logger.Printf("Sending game server logs to %v...\n", receiver)
+
+		bytes := 0
+
 		for _, line := range serverConsoleOutput {
 			SendSocketResponseMessage(receiver, line)
+			bytes += len(line)
 		}
+
+		logger.Printf("Sent %d bytes (%d lines) of game server logs to %v\n", bytes, len(serverConsoleOutput), receiver)
+	} else {
+		logger.Println("Ignoring: Nothing to send.")
 	}
 }
 
 func sendConsoleReplies(receiver *net.UDPAddr, command string) {
+	logger.Printf("Sending game server console replies for command '%s' to %v...\n", command, receiver)
+
 	// ensure the console replies are printed to as expected
 	time.Sleep(serverConsoleInputDelay)
 
@@ -93,15 +108,24 @@ func sendConsoleReplies(receiver *net.UDPAddr, command string) {
 }
 
 func SendConsoleCommand(receiver *net.UDPAddr, command string) {
+	logger.Printf("Received server command '%s' from %v\n", command, receiver)
+
 	if serverCommand != nil && serverConsole != nil {
+		logger.Printf("Sending server command '%s' from %v to game server console...\n", command, receiver)
+
 		serverConsoleInput <- command
 		sendConsoleReplies(receiver, command)
 	}
 }
 
 func StartServer(receiver *net.UDPAddr) {
+	logger.Printf("Received request to start the game server from %v\n", receiver)
+
 	if serverCommand != nil {
-		SendSocketResponseMessage(receiver, fmt.Sprintf("Server already running (PID: %d)", serverCommand.Process.Pid))
+		message := fmt.Sprintf("Server already running (PID: %d)", serverCommand.Process.Pid)
+
+		logger.Printf("Ignoring: %s\n", message)
+		SendSocketResponseMessage(receiver, message)
 		return
 	}
 
@@ -122,6 +146,8 @@ func StartServer(receiver *net.UDPAddr) {
 
 	serverCommand.Dir = Config.ServerHome
 
+	logger.Println("Starting game server...")
+
 	var err error
 	serverConsole, err = pty.Start(serverCommand)
 
@@ -136,10 +162,13 @@ func StartServer(receiver *net.UDPAddr) {
 }
 
 func StopServer(receiver *net.UDPAddr) {
+	logger.Printf("Received request to stop the game server from %v\n", receiver)
 	SendConsoleCommand(receiver, "quit")
 }
 
 func UpdateServer(receiver *net.UDPAddr) {
+	logger.Printf("Received request to update the game server from %v\n", receiver)
+
 	if serverCommand != nil && serverConsole != nil {
 		SendSocketResponseMessage(receiver, "Server is running, cannot update. Ignoring...")
 		return
@@ -178,6 +207,8 @@ func UpdateServer(receiver *net.UDPAddr) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	logger.Println("Updating the game server...")
 
 	if err = updateCommand.Start(); err != nil {
 		log.Fatal(err)
