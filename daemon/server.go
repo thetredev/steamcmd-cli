@@ -98,7 +98,7 @@ func (server *Server) Start(socket *Socket, receiver *net.UDPAddr) error {
 		message := fmt.Sprintf("Server already running (PID: %d)", server.Command.Process.Pid)
 
 		socket.SendMessage(receiver, message)
-		server.Logger.Printf("Ignoring: %s\n", message)
+		server.Logger.Println("Ignoring:", message)
 	}
 
 	if _, err := os.Stat(Config.ServerHome); os.IsNotExist(err) {
