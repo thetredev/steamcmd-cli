@@ -7,10 +7,11 @@ import (
 )
 
 var updateCmd = &cobra.Command{
-	Use:   "update",
-	Short: "Update the game server via the daemon socket",
-	Long:  `A longer description`,
-	Run:   updateCallback,
+	Use:     "update",
+	Version: shared.Version,
+	Short:   "Update the game server via the daemon socket",
+	Long:    `A longer description`,
+	Run:     updateCallback,
 }
 
 func init() {

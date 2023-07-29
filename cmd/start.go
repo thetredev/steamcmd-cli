@@ -7,10 +7,11 @@ import (
 )
 
 var startCmd = &cobra.Command{
-	Use:   "start",
-	Short: "Start the game server via the daemon socket",
-	Long:  `A longer description`,
-	Run:   startCallback,
+	Use:     "start",
+	Version: shared.Version,
+	Short:   "Start the game server via the daemon socket",
+	Long:    `A longer description`,
+	Run:     startCallback,
 }
 
 func init() {

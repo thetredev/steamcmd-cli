@@ -7,10 +7,11 @@ import (
 )
 
 var commandCmd = &cobra.Command{
-	Use:   "command",
-	Short: "Send commands to the game server console via the daemon socket",
-	Long:  `A longer description`,
-	Run:   commandCallback,
+	Use:     "command",
+	Version: shared.Version,
+	Short:   "Send commands to the game server console via the daemon socket",
+	Long:    `A longer description`,
+	Run:     commandCallback,
 }
 
 func init() {

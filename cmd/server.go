@@ -1,12 +1,16 @@
 package cmd
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/spf13/cobra"
+	"github.com/thetredev/steamcmd-cli/shared"
+)
 
 var serverCmd = &cobra.Command{
-	Use:   "server",
-	Short: "Subcommands to communicate with the game server via the daemon socket",
-	Long:  `A longer description`,
-	Run:   serverCallback,
+	Use:     "server",
+	Version: shared.Version,
+	Short:   "Subcommands to communicate with the game server via the daemon socket",
+	Long:    `A longer description`,
+	Run:     serverCallback,
 }
 
 func init() {

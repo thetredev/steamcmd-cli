@@ -3,13 +3,15 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 	"github.com/thetredev/steamcmd-cli/daemon"
+	"github.com/thetredev/steamcmd-cli/shared"
 )
 
 var daemonCmd = &cobra.Command{
-	Use:   "daemon",
-	Short: "Run the daemon socket",
-	Long:  `A longer description`,
-	Run:   daemonCallback,
+	Use:     "daemon",
+	Version: shared.Version,
+	Short:   "Run the daemon socket",
+	Long:    `A longer description`,
+	Run:     daemonCallback,
 }
 
 func init() {

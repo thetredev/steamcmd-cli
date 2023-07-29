@@ -7,10 +7,11 @@ import (
 )
 
 var stopCmd = &cobra.Command{
-	Use:   "stop",
-	Short: "Stop the game server via the daemon socket",
-	Long:  `A longer description`,
-	Run:   stopCallback,
+	Use:     "stop",
+	Version: shared.Version,
+	Short:   "Stop the game server via the daemon socket",
+	Long:    `A longer description`,
+	Run:     stopCallback,
 }
 
 func init() {

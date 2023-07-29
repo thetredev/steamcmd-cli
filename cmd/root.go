@@ -4,12 +4,14 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/thetredev/steamcmd-cli/shared"
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "steamcmd-cli",
-	Short: "Custom SteamCMD client implementation written in Go",
-	Long:  `Some multiline description.`,
+	Use:     "steamcmd-cli",
+	Version: shared.Version,
+	Short:   "Custom SteamCMD client implementation written in Go",
+	Long:    `Some multiline description.`,
 }
 
 func Execute() {
