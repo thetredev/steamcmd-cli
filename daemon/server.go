@@ -170,6 +170,10 @@ func (server *Server) Start(socket *Socket) error {
 	go server.Console.ListenForInput()
 	go server.Console.ListenForOutput()
 
+	if server.IsCSGO() {
+		server.EnableTickrate()
+	}
+
 	return nil
 }
 
@@ -226,4 +230,19 @@ func (server *Server) DispatchConsoleCommand(socket *Socket, command string) {
 			server.Console.SendCommandReplies(socket, command)
 		}
 	}
+}
+
+func (server *Server) EnableTickrate() {
+	var tickrateCvars = []string{
+		"sv_minupdaterate",
+		"sv_mincmdrate",
+		"sv_minrate",
+		"sv_maxrate",
+	}
+
+	for _, tickrateCvar := range tickrateCvars {
+		server.Console.Input <- fmt.Sprintf("%s %d", tickrateCvar, Config.ServerTickrate)
+	}
+
+	server.Console.Input <- fmt.Sprintf("fps_max %d", Config.ServerFpsMax)
 }
