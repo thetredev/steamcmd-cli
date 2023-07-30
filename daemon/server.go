@@ -36,7 +36,7 @@ func (server *Server) Delete() {
 	server.Command = nil
 }
 
-func (server *Server) Update(socket *Socket) error {
+func (server *Server) Update(socket *Socket) (bool, error) {
 	server.Logger.Println("Received request to update the game server")
 
 	if server.IsRunning() {
@@ -44,25 +44,25 @@ func (server *Server) Update(socket *Socket) error {
 
 		socket.SendMessage(message)
 		server.Logger.Println("Ignoring:", message)
-		return nil
+		return true, nil
 	}
 
 	server.Logger.Println("Updating the game server...")
 
 	if len(Config.Application) == 0 {
-		return errors.New("STEAMCMD_SH not set")
+		return false, errors.New("STEAMCMD_SH not set")
 	}
 
 	if _, err := os.Stat(Config.Application); os.IsNotExist(err) {
-		return err
+		return false, err
 	}
 
 	if Config.ServerAppId <= 0 {
-		return errors.New("STEAMCMD_SERVER_APPID not set")
+		return false, errors.New("STEAMCMD_SERVER_APPID not set")
 	}
 
 	if len(Config.ServerHome) == 0 {
-		return errors.New("STEAMCMD_SERVER_HOME not set")
+		return false, errors.New("STEAMCMD_SERVER_HOME not set")
 	}
 
 	updateCommand := exec.Command(
@@ -76,22 +76,31 @@ func (server *Server) Update(socket *Socket) error {
 		),
 	)
 
-	ptyFile, err := pty.Start(updateCommand)
+	updater := NewServerUpdater()
+
+	var err error
+	updater.Pty, err = pty.Start(updateCommand)
 
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	go func() {
-		scanner := bufio.NewScanner(ptyFile)
+		scanner := bufio.NewScanner(updater.Pty)
 
 		for scanner.Scan() {
-			socket.SendMessage(scanner.Text())
+			line := scanner.Text()
+
+			updater.AppendOutputLine(line)
+			socket.SendMessage(line)
 		}
 	}()
 
 	updateCommand.Wait()
-	return nil
+	success := updater.IsSuccessful()
+
+	updater.Delete()
+	return success, nil
 }
 
 func gameServerString(server *Server) string {

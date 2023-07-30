@@ -73,8 +73,16 @@ func StartSocket() {
 		case shared.ServerStopMessage:
 			server.Stop(socket)
 		case shared.ServerUpdateMessage:
-			if err := server.Update(socket); err != nil {
-				log.Fatal(err)
+			for {
+				success, err := server.Update(socket)
+
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				if success {
+					break
+				}
 			}
 		default:
 			if !handleSpecialMessage(server, socket, message) {
