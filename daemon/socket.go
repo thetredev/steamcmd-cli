@@ -97,6 +97,7 @@ func StartSocket() {
 			}
 		case shared.ServerStopMessage:
 			server.Stop(socket)
+			socket.Input <- "Game server stopped."
 		case shared.ServerUpdateMessage:
 			for {
 				success, err := server.Update(socket)
