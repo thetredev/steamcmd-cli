@@ -25,13 +25,12 @@ RUN cp /lib/i386-linux-gnu/libncurses.so.6.* ./libncurses.so.5
 RUN cp /usr/lib/i386-linux-gnu/librt.so.1 ./librt.so.1
 
 
-FROM i386/alpine:3.18.2 AS sdl2_builder
-
-RUN apk update
-RUN apk add --no-cache sdl2
+FROM registry.gitlab.steamos.cloud/steamrt/sniper/platform:0.20230712.54652 AS runtime_builder
 
 WORKDIR /steamcmd-libs
-RUN cp /usr/lib/libSDL2* .
+RUN cp /usr/lib/i386-linux-gnu/libSDL2*.so.0.* .
+RUN for _lib in $(ls -1); do mv $_lib $(echo $_lib | grep -o '.*\.so'); done
+RUN cp /usr/lib/i386-linux-gnu/libstdc++.so.6.* ./libstdc++.so.6
 
 
 FROM i386/busybox:1.36.1-glibc
@@ -51,7 +50,7 @@ COPY --from=steamcmd_builder /usr/bin/bash-static /bin/bash
 COPY --from=steamcmd_builder /steamcmd ${STEAMCMD_PACKAGE_DIR}
 
 COPY --from=steamcmd_builder /steamcmd-libs/* /lib
-COPY --from=sdl2_builder /steamcmd-libs/* /lib
+COPY --from=runtime_builder /steamcmd-libs/* /lib
 
 COPY --from=cli_builder /bin/steamcmd-cli /bin/steamcmd-cli
 
@@ -59,7 +58,7 @@ VOLUME [ ${STEAMCMD_PACKAGE_DIR} ]
 
 RUN mkdir -p ~/.steam && \
     ln -sf ${STEAMCMD_PACKAGE_DIR}/linux32 ~/.steam/sdk32 && \
-    ln -sf ${STEAMCMD_PACKAGE_DIR}/linux32/libstdc++.so.6 /lib/libstdc++.so.6
+    for _lib in $(ls -1 /lib/libSDL2*.so); do ln -sf ${_lib} ${_lib}.0; done
 
 ENV STEAMCMD_SH=${STEAMCMD_PACKAGE_DIR}/steamcmd.sh \
     STEAMCMD_SERVER_HOME=${STEAMCMD_HOME}/server
