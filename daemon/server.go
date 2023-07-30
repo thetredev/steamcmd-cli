@@ -94,6 +94,14 @@ func (server *Server) Update(socket *Socket) error {
 	return nil
 }
 
+func gameServerString(server *Server) string {
+	if server.IsSRCDS() {
+		return "srcds_linux"
+	}
+
+	return "hlds_linux"
+}
+
 func gameString(server *Server) string {
 	if server.IsSRCDS() && Config.ServerGame == "css" {
 		return "cstrike"
@@ -141,7 +149,8 @@ func (server *Server) Start(socket *Socket) error {
 	server.Command = exec.Command(
 		"bash", "-c",
 		fmt.Sprintf(
-			"./srcds_linux -console -game %s +ip 0.0.0.0 -port %d %s %d +map %s -tickrate %d -threads %d -nodev",
+			"./%s -console -game %s +ip 0.0.0.0 -port %d %s %d +map %s -tickrate %d -threads %d -nodev",
+			gameServerString(server),
 			gameString(server),
 			Config.ServerPort,
 			maxplayersString(server),
