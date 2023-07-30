@@ -33,7 +33,7 @@ func (console *ServerConsole) ListenForInput() {
 	for {
 		select {
 		case input := <-console.Input:
-			console.Pty.WriteString(fmt.Sprintf("%s\n", input))
+			console.Pty.WriteString(fmt.Sprintln(input))
 
 			if input == "quit" {
 				return
