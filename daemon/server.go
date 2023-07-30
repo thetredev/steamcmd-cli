@@ -94,6 +94,22 @@ func (server *Server) Update(socket *Socket) error {
 	return nil
 }
 
+func gameString(server *Server) string {
+	if server.IsSRCDS() && Config.ServerGame == "css" {
+		return "cstrike"
+	}
+
+	return Config.ServerGame
+}
+
+func maxplayersString(server *Server) string {
+	if server.IsCSGO() {
+		return "-maxplayers_override"
+	}
+
+	return "+maxplayers"
+}
+
 func (server *Server) Start(socket *Socket) error {
 	server.Logger.Println("Received request to start the game server")
 
@@ -108,11 +124,32 @@ func (server *Server) Start(socket *Socket) error {
 		return errors.New("STEAMCMD_SERVER_HOME is set to a nonexistent path")
 	}
 
+	if len(Config.ServerGame) == 0 {
+		return errors.New("STEAMCMD_SERVER_GAME not set")
+	}
+
+	if Config.ServerMaxPlayers == 0 {
+		return errors.New("STEAMCMD_SERVER_MAXPLAYERS not set")
+	}
+
+	if len(Config.ServerMap) == 0 {
+		return errors.New("STEAMCMD_SERVER_MAP not set")
+	}
+
 	server.Logger.Println("Starting game server...")
 
 	server.Command = exec.Command(
 		"bash", "-c",
-		"./srcds_linux -console -game cstrike +ip 0.0.0.0 -port 27019 +maxplayers 12 +map de_dust2 -tickrate 128 -threads 3 -nodev",
+		fmt.Sprintf(
+			"./srcds_linux -console -game %s +ip 0.0.0.0 -port %d %s %d +map %s -tickrate %d -threads %d -nodev",
+			gameString(server),
+			Config.ServerPort,
+			maxplayersString(server),
+			Config.ServerMaxPlayers,
+			Config.ServerMap,
+			Config.ServerTickrate,
+			Config.ServerThreads,
+		),
 	)
 
 	server.Command.Env = os.Environ()
@@ -145,14 +182,17 @@ func (server *Server) IsRunning() bool {
 	return server.Command != nil && server.Console != nil
 }
 
+func pathExists(path string) bool {
+	_, err := os.Stat(fmt.Sprintf("%s/%s", Config.ServerHome, path))
+	return !os.IsNotExist(err)
+}
+
 func (server *Server) IsSRCDS() bool {
-	// check whether Config.ServerHome contains the executable 'srcds_linux'
-	return false
+	return pathExists("srcds_linux")
 }
 
 func (server *Server) IsCSGO() bool {
-	// isSRCDS + check whether Config.ServerHome contains the folder 'csgo'
-	return false
+	return server.IsSRCDS() && pathExists("csgo")
 }
 
 func (server *Server) SendLogs(socket *Socket) {
