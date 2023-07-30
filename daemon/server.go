@@ -7,9 +7,11 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/creack/pty"
+	"golang.org/x/exp/slices"
 )
 
 const serverConsoleInputDelay time.Duration = 250 * time.Millisecond
@@ -34,6 +36,14 @@ func (server *Server) Delete() {
 	}
 
 	server.Command = nil
+}
+
+func gameServerMod(server *Server) string {
+	if Config.ServerAppId != 90 || Config.ServerMod == "valve" {
+		return ""
+	}
+
+	return fmt.Sprintf("+app_set_config 90 mod %s", Config.ServerMod)
 }
 
 func (server *Server) Update(socket *Socket) (bool, error) {
@@ -71,7 +81,7 @@ func (server *Server) Update(socket *Socket) (bool, error) {
 			"%s +force_install_dir %s +login anonymous %s +app_update %d validate +quit",
 			Config.Application,
 			Config.ServerHome,
-			Config.ServerAppConfig,
+			gameServerMod(server),
 			Config.ServerAppId,
 		),
 	)
@@ -111,12 +121,46 @@ func gameServerString(server *Server) string {
 	return "hlds_linux"
 }
 
-func gameString(server *Server) string {
-	if server.IsSRCDS() && Config.ServerGame == "css" {
-		return "cstrike"
+func gameString(server *Server) (string, error) {
+	if Config.ServerMod == "valve" {
+		return "valve", nil
 	}
 
-	return Config.ServerGame
+	entries, _ := os.ReadDir(Config.ServerHome)
+
+	for _, entry := range entries {
+		server.Logger.Println(entry)
+	}
+
+	invalidEntries := []string{
+		"bin",
+		"hl2",
+		"linux",
+		"linux32",
+		"linux64",
+		"platform",
+		"steamapps",
+	}
+
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+
+		dirName := entry.Name()
+
+		if slices.Contains(invalidEntries, dirName) {
+			continue
+		}
+
+		if strings.Contains(dirName, "_") || strings.Contains(dirName, ".pak") {
+			continue
+		}
+
+		return dirName, nil
+	}
+
+	return "", errors.New("Game not found. Try 'update' first.")
 }
 
 func maxplayersString(server *Server) string {
@@ -137,12 +181,9 @@ func (server *Server) Start(socket *Socket) error {
 		server.Logger.Println("Ignoring:", message)
 	}
 
-	if _, err := os.Stat(Config.ServerHome); os.IsNotExist(err) {
+	var err error
+	if _, err = os.Stat(Config.ServerHome); os.IsNotExist(err) {
 		return errors.New("STEAMCMD_SERVER_HOME is set to a nonexistent path")
-	}
-
-	if len(Config.ServerGame) == 0 {
-		return errors.New("STEAMCMD_SERVER_GAME not set")
 	}
 
 	if Config.ServerMaxPlayers == 0 {
@@ -153,6 +194,13 @@ func (server *Server) Start(socket *Socket) error {
 		return errors.New("STEAMCMD_SERVER_MAP not set")
 	}
 
+	var game string
+	game, err = gameString(server)
+
+	if err != nil {
+		return err
+	}
+
 	server.Logger.Println("Starting game server...")
 
 	server.Command = exec.Command(
@@ -160,7 +208,7 @@ func (server *Server) Start(socket *Socket) error {
 		fmt.Sprintf(
 			"./%s -console -game %s +ip 0.0.0.0 -port %d %s %d +map %s -tickrate %d -threads %d -nodev",
 			gameServerString(server),
-			gameString(server),
+			game,
 			Config.ServerPort,
 			maxplayersString(server),
 			Config.ServerMaxPlayers,
@@ -177,8 +225,6 @@ func (server *Server) Start(socket *Socket) error {
 	)
 
 	server.Command.Dir = Config.ServerHome
-
-	var err error
 	server.Console.Pty, err = pty.Start(server.Command)
 
 	if err != nil {
