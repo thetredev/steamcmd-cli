@@ -1,18 +1,5 @@
-FROM i386/golang:1.20.6-alpine3.18 AS cli_builder
-
-ENV CGO_ENABLED=0 \
-    GOOS=linux
-
-WORKDIR /go/src
-RUN apk update
-RUN apk add --no-cache git
-RUN --mount=type=bind,target=/go/src,source=. \
-    version=$(git describe --tags || git rev-parse HEAD) && \
-    go_module=$(grep "module" go.mod | head -1 | cut -d ' ' -f 2) && \
-    go get -u && \
-    go build \
-        -ldflags "-s -w -X '${go_module}/shared.Version=${version}'" \
-        -o /go/bin/steamcmd-cli
+ARG BASE_IMAGE=github.com/thetredev/steamcmd-cli:server
+FROM ${BASE_IMAGE} AS cli_builder
 
 
 FROM i386/debian:bookworm-20230725-slim AS steamcmd_builder
@@ -25,10 +12,10 @@ RUN apt-get install -y --no-install-recommends libncurses6
 RUN apt-get install -y --no-install-recommends ca-certificates
 
 WORKDIR /steamcmd
-RUN wget http://media.steampowered.com/installer/steamcmd_linux.tar.gz
+RUN wget -q http://media.steampowered.com/installer/steamcmd_linux.tar.gz
 RUN tar xf steamcmd_linux.tar.gz
 RUN rm -rf steamcmd_linux.tar.gz
-RUN ./steamcmd.sh +quit
+RUN ./steamcmd.sh +quit > /dev/null 2>&1
 
 WORKDIR /steamcmd-libs
 RUN cp /lib/i386-linux-gnu/libdl.so.2 ./libdl.so.2
@@ -42,32 +29,39 @@ FROM i386/alpine:3.18.2 AS sdl2_builder
 
 RUN apk update
 RUN apk add --no-cache sdl2
-WORKDIR /steamcmd-libs
 
+WORKDIR /steamcmd-libs
 RUN cp /usr/lib/libSDL2* .
 
 
 FROM i386/busybox:1.36.1-glibc
 
+ARG STEAMCMD_HOME=/var/lib/steamcmd
+ENV STEAMCMD_HOME=${STEAMCMD_HOME}
+
+ARG STEAMCMD_PACKAGE_DIR=${STEAMCMD_HOME}/package
+ENV STEAMCMD_PACKAGE_DIR=${STEAMCMD_PACKAGE_DIR}
+
+ENV LC_ALL=C
+
 COPY --from=steamcmd_builder /etc/ssl /etc/ssl
 COPY --from=steamcmd_builder /usr/share/zoneinfo/Etc/UTC /etc/localtime
 
 COPY --from=steamcmd_builder /usr/bin/bash-static /bin/bash
-COPY --from=steamcmd_builder /steamcmd /var/lib/steamcmd
+COPY --from=steamcmd_builder /steamcmd ${STEAMCMD_PACKAGE_DIR}
 
 COPY --from=steamcmd_builder /steamcmd-libs/* /lib
 COPY --from=sdl2_builder /steamcmd-libs/* /lib
 
-COPY --from=cli_builder /go/bin/steamcmd-cli /bin/steamcmd-cli
+COPY --from=cli_builder /bin/steamcmd-cli /bin/steamcmd-cli
 
-ENV LC_ALL=C
-
-ENV STEAMCMD_HOME=/var/lib/steamcmd
-
-ENV STEAMCMD_SH=${STEAMCMD_HOME}/steamcmd.sh \
-    STEAMCMD_SERVER_HOME=${STEAMCMD_HOME}/server
+VOLUME [ ${STEAMCMD_PACKAGE_DIR} ]
 
 RUN mkdir -p ~/.steam && \
-    ln -sf ${STEAMCMD_HOME}/linux32 ~/.steam/sdk32
+    ln -sf ${STEAMCMD_PACKAGE_DIR}/linux32 ~/.steam/sdk32 && \
+    ln -sf ${STEAMCMD_PACKAGE_DIR}/linux32/libstdc++.so.6 /lib/libstdc++.so.6
 
-ENTRYPOINT [ "/bin/steamcmd-cli" ]
+ENV STEAMCMD_SH=${STEAMCMD_PACKAGE_DIR}/steamcmd.sh \
+    STEAMCMD_SERVER_HOME=${STEAMCMD_HOME}/server
+
+ENTRYPOINT [ "/bin/steamcmd-cli", "daemon" ]
