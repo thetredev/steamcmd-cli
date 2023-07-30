@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"time"
 )
 
 type ServerConsole struct {
@@ -68,19 +67,16 @@ func (console *ServerConsole) SendCommandReplies(socket *Socket, command string)
 
 	// send all console replies to receiver in correct order
 	for i := len(reversedLines) - 1; i > -1; i-- {
-		socket.SendMessage(reversedLines[i])
+		socket.Input <- reversedLines[i]
 	}
 }
 
 func (console *ServerConsole) SendLogs(socket *Socket) int {
-	const tcpCongestionPreventionDelay = time.Millisecond * 1
 	bytes := 0
 
 	for _, line := range console.Output {
-		socket.SendMessage(line)
+		socket.Input <- line
 		bytes += len(line)
-
-		time.Sleep(tcpCongestionPreventionDelay)
 	}
 
 	return bytes

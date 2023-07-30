@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"strings"
+	"time"
 
 	"github.com/thetredev/steamcmd-cli/shared"
 )
@@ -12,6 +13,7 @@ import (
 type Socket struct {
 	Listener   *net.TCPListener
 	Connection *net.TCPConn
+	Input      chan string
 }
 
 func NewSocket(ip string, port int) *Socket {
@@ -29,14 +31,34 @@ func NewSocket(ip string, port int) *Socket {
 	return &Socket{
 		Listener:   listener,
 		Connection: nil,
+		Input:      make(chan string),
 	}
 }
 
-func (socket *Socket) SendMessage(message string) {
-	_, err := socket.Connection.Write([]byte(fmt.Sprintf("%s\n", message)))
+func (socket *Socket) Delete() {
+	socket.Connection.Close()
+	socket.Connection = nil
+}
 
-	if err != nil {
-		log.Fatal(err)
+func listenForSocketInput(socket *Socket) {
+	const delay = 1 * time.Millisecond
+
+	for {
+		if socket.Connection == nil {
+			break
+		}
+
+		select {
+		case message := <-socket.Input:
+			_, err := socket.Connection.Write([]byte(fmt.Sprintln(message)))
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			// Prevent TCP congestion
+			time.Sleep(delay)
+		}
 	}
 }
 
@@ -61,6 +83,7 @@ func StartSocket() {
 			log.Fatal(err)
 		}
 
+		go listenForSocketInput(socket)
 		message := strings.Split(string(buffer), "\n")[0]
 
 		switch message {
@@ -68,7 +91,9 @@ func StartSocket() {
 			server.SendLogs(socket)
 		case shared.ServerStartMessage:
 			if err := server.Start(socket); err != nil {
-				log.Fatal(err)
+				socket.Input <- err.Error()
+			} else {
+				socket.Input <- "Game server started. You can now view its logs."
 			}
 		case shared.ServerStopMessage:
 			server.Stop(socket)
@@ -86,12 +111,12 @@ func StartSocket() {
 			}
 		default:
 			if !handleSpecialMessage(server, socket, message) {
-				socket.SendMessage(fmt.Sprintf("Invalid command: %s; ignoring...\n", message))
+				socket.Input <- fmt.Sprintf("Invalid command: %s; ignoring...\n", message)
 			}
 		}
 
-		socket.SendMessage(shared.SocketEndMessage)
-		socket.Connection.Close()
+		socket.Input <- shared.SocketEndMessage
+		socket.Delete()
 	}
 }
 
