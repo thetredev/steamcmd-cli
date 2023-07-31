@@ -36,8 +36,7 @@ func SendMessage(message string, args ...string) {
 		_, err := reader.Read(buffer)
 
 		if err != nil {
-			socket.Close()
-			log.Fatal(err)
+			break
 		}
 
 		message := string(buffer)

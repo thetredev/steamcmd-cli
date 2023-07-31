@@ -45,11 +45,15 @@ func listenForSocketInput(socket *Socket) {
 
 	for {
 		if socket.Connection == nil {
-			break
+			return
 		}
 
 		select {
 		case message := <-socket.Input:
+			if socket.Connection == nil {
+				return
+			}
+
 			_, err := socket.Connection.Write([]byte(fmt.Sprintln(message)))
 
 			if err != nil {
@@ -75,15 +79,17 @@ func StartSocket() {
 	for {
 		var err error
 		socket.Connection, err = socket.Listener.AcceptTCP()
+		go listenForSocketInput(socket)
 
 		buffer := make([]byte, 256)
 		_, err = socket.Connection.Read(buffer)
 
 		if err != nil {
-			log.Fatal(err)
+			server.Logger.Printf("Ignoring socket error: %s\n", err.Error())
+			socket.Delete()
+			continue
 		}
 
-		go listenForSocketInput(socket)
 		message := strings.Split(string(buffer), "\n")[0]
 
 		switch message {
