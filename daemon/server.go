@@ -52,7 +52,7 @@ func (server *Server) Update(socket *Socket) (bool, error) {
 	if server.IsRunning() {
 		message := "Server is currently running, cannot update."
 
-		socket.Input <- message
+		socket.SendMessage(message)
 		server.Logger.Println("Ignoring:", message)
 		return true, nil
 	}
@@ -102,7 +102,7 @@ func (server *Server) Update(socket *Socket) (bool, error) {
 			line := scanner.Text()
 
 			updater.AppendOutputLine(line)
-			socket.Input <- line
+			socket.SendMessage(line)
 		}
 	}()
 
@@ -177,7 +177,7 @@ func (server *Server) Start(socket *Socket) error {
 	if server.IsRunning() {
 		message := fmt.Sprintf("Server already running (PID: %d)", server.Command.Process.Pid)
 
-		socket.Input <- message
+		socket.SendMessage(message)
 		server.Logger.Println("Ignoring:", message)
 	}
 
@@ -289,9 +289,9 @@ func (server *Server) DispatchConsoleCommand(socket *Socket, command string) {
 			server.Command.Wait()
 			server.Delete()
 
-			socket.Input <- message
+			socket.SendMessage(message)
 		} else {
-			socket.Input <- fmt.Sprintln(message)
+			socket.SendMessage(fmt.Sprintln(message))
 
 			// ensure the console replies are printed to as expected
 			time.Sleep(serverConsoleInputDelay)
