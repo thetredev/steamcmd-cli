@@ -128,7 +128,7 @@ func StartSocket() {
 }
 
 func handleSpecialMessage(serverInstance *Server, socket *Socket, message string) bool {
-	if strings.HasPrefix(message, shared.ServerCommandMessage) {
+	if strings.HasPrefix(message, shared.ServerConsoleCommandMessage) {
 		command := strings.Join(strings.Split(message, " ")[1:], " ")
 		serverInstance.DispatchConsoleCommand(socket, command)
 		return true

@@ -6,18 +6,18 @@ import (
 	"github.com/thetredev/steamcmd-cli/shared"
 )
 
-var commandCmd = &cobra.Command{
-	Use:     "command",
+var consoleCmd = &cobra.Command{
+	Use:     "console",
 	Version: shared.Version,
 	Short:   "Send commands to the game server console via the daemon socket",
 	Long:    `A longer description`,
-	Run:     commandCallback,
+	Run:     consoleCallback,
 }
 
 func init() {
-	serverCmd.AddCommand(commandCmd)
+	serverCmd.AddCommand(consoleCmd)
 }
 
-func commandCallback(cmd *cobra.Command, args []string) {
-	server.SendMessage(shared.ServerCommandMessage, args...)
+func consoleCallback(cmd *cobra.Command, args []string) {
+	server.SendMessage(shared.ServerConsoleCommandMessage, args...)
 }
