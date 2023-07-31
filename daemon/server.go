@@ -38,7 +38,7 @@ func (server *Server) Delete() {
 	server.Command = nil
 }
 
-func gameServerMod(server *Server) string {
+func gameServerMod() string {
 	if Config.ServerAppId != 90 || Config.ServerMod == "valve" {
 		return ""
 	}
@@ -76,14 +76,12 @@ func (server *Server) Update(socket *Socket) (bool, error) {
 	}
 
 	updateCommand := exec.Command(
-		"bash", "-c",
-		fmt.Sprintf(
-			"%s +force_install_dir %s +login anonymous %s +app_update %d validate +quit",
-			Config.Application,
-			Config.ServerHome,
-			gameServerMod(server),
-			Config.ServerAppId,
-		),
+		"bash", Config.Application,
+		"+force_install_dir", Config.ServerHome,
+		"+login", "anonymous",
+		gameServerMod(),
+		"+app_update", fmt.Sprintf("%d", Config.ServerAppId), "validate",
+		"+quit",
 	)
 
 	updater := NewServerUpdater()
