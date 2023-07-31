@@ -171,6 +171,14 @@ func maxplayersString(server *Server) string {
 	return "+maxplayers"
 }
 
+func fpsMaxString(server *Server) string {
+	if Config.ServerFpsMax == 0 {
+		return ""
+	}
+
+	return fmt.Sprintf("+fps_max %d", Config.ServerFpsMax)
+}
+
 func (server *Server) Start(socket *Socket) error {
 	server.Logger.Println("Received request to start the game server")
 
@@ -206,13 +214,14 @@ func (server *Server) Start(socket *Socket) error {
 	server.Command = exec.Command(
 		"bash", "-c",
 		fmt.Sprintf(
-			"./%s -console -game %s +ip 0.0.0.0 -port %d %s %d +map %s -tickrate %d -threads %d -nodev",
+			"./%s -console -game %s +ip 0.0.0.0 -port %d %s %d +map %s %s -tickrate %d -threads %d -nodev",
 			gameServerString(server),
 			game,
 			Config.ServerPort,
 			maxplayersString(server),
 			Config.ServerMaxPlayers,
 			Config.ServerMap,
+			fpsMaxString(server),
 			Config.ServerTickrate,
 			Config.ServerThreads,
 		),
@@ -313,6 +322,4 @@ func (server *Server) EnableTickrate() {
 	for _, tickrateCvar := range tickrateCvars {
 		server.Console.Input <- fmt.Sprintf("%s %d", tickrateCvar, Config.ServerTickrate)
 	}
-
-	server.Console.Input <- fmt.Sprintf("fps_max %d", Config.ServerFpsMax)
 }
