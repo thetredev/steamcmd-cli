@@ -18,5 +18,10 @@ func init() {
 }
 
 func startCallback(cmd *cobra.Command, args []string) {
-	server.SendMessage(shared.ServerStartMessage)
+	if len(args) < 2 {
+		cmd.Help()
+		return
+	}
+
+	server.SendMessage(args[0], args[1], shared.ServerStartMessage)
 }
