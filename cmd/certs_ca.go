@@ -11,7 +11,7 @@ import (
 )
 
 var certsCaCmd = &cobra.Command{
-	Use:     "ca",
+	Use:     "ca <output dir>",
 	Version: shared.Version,
 	Short:   "Generate CA certificate and private key",
 	Long:    `A longer description`,
@@ -20,17 +20,23 @@ var certsCaCmd = &cobra.Command{
 
 func init() {
 	certsCmd.AddCommand(certsCaCmd)
+	certCmdAddFlags(certsCaCmd)
 }
 
 func certsCaCmdCallback(cmd *cobra.Command, args []string) {
-	const certPath = "certs/ca"
+	if len(args) < 1 {
+		cmd.Help()
+		return
+	}
+
+	certPath := args[0]
 	err := os.MkdirAll(certPath, os.ModePerm)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	ca, err := server.NewCertificateAuthority()
+	ca, err := server.NewCertificateAuthority(certCmdParseFlags(cmd))
 
 	if err != nil {
 		log.Fatal(err)

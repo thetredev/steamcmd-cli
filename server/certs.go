@@ -12,17 +12,19 @@ import (
 	"time"
 )
 
-func createCertificate(keyUsage x509.KeyUsage, hostnames ...net.IP) (*x509.Certificate, *rsa.PrivateKey, error) {
-	// TODO: Provide params via terminal input
-	paramCompany := "steamcmd-cli"
-	paramCountry := "US"
-	paramProvince := ""
-	paramLocality := "San Francisco"
-	paramStreetAddress := "Somestreet"
-	paramPostalCode := "94016"
-	paramUntil := time.Date(2099, 1, 1, 1, 1, 1, 0, time.UTC)
-	paramKeyLength := 4096
+type CertificateParameters struct {
+	Company       string
+	Country       string
+	Province      string
+	Locality      string
+	StreetAddress string
+	PostalCode    string
+	ValidUntil    time.Time
+	KeyLength     int
+	Hostnames     []string
+}
 
+func createCertificate(params *CertificateParameters, keyUsage x509.KeyUsage) (*x509.Certificate, *rsa.PrivateKey, error) {
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 
@@ -33,15 +35,15 @@ func createCertificate(keyUsage x509.KeyUsage, hostnames ...net.IP) (*x509.Certi
 	certificate := &x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
-			Organization:  []string{paramCompany},
-			Country:       []string{paramCountry},
-			Province:      []string{paramProvince},
-			Locality:      []string{paramLocality},
-			StreetAddress: []string{paramStreetAddress},
-			PostalCode:    []string{paramPostalCode},
+			Organization:  []string{params.Company},
+			Country:       []string{params.Country},
+			Province:      []string{params.Province},
+			Locality:      []string{params.Locality},
+			StreetAddress: []string{params.StreetAddress},
+			PostalCode:    []string{params.PostalCode},
 		},
 		NotBefore:   time.Now(),
-		NotAfter:    paramUntil,
+		NotAfter:    params.ValidUntil,
 		IsCA:        true,
 		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 		KeyUsage:    keyUsage,
@@ -52,11 +54,15 @@ func createCertificate(keyUsage x509.KeyUsage, hostnames ...net.IP) (*x509.Certi
 		certificate.BasicConstraintsValid = true
 	}
 
-	if len(hostnames) > 0 {
-		certificate.IPAddresses = append(certificate.IPAddresses, hostnames...)
+	for _, hostname := range params.Hostnames {
+		if ip := net.ParseIP(hostname); ip != nil {
+			certificate.IPAddresses = append(certificate.IPAddresses, ip)
+		} else {
+			certificate.DNSNames = append(certificate.DNSNames, hostname)
+		}
 	}
 
-	privateKey, err := rsa.GenerateKey(rand.Reader, paramKeyLength)
+	privateKey, err := rsa.GenerateKey(rand.Reader, params.KeyLength)
 
 	if err != nil {
 		return nil, nil, err
@@ -72,8 +78,8 @@ type Certificate struct {
 	PrivateKeyPEM *bytes.Buffer
 }
 
-func NewCertificateAuthority() (*Certificate, error) {
-	certificate, privateKey, err := createCertificate(x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign)
+func NewCertificateAuthority(params *CertificateParameters) (*Certificate, error) {
+	certificate, privateKey, err := createCertificate(params, x509.KeyUsageDigitalSignature|x509.KeyUsageCertSign)
 
 	if err != nil {
 		return nil, err
@@ -110,9 +116,8 @@ type IssuedCertificate struct {
 	Certificate *Certificate
 }
 
-func IssueCertificate(ca *Certificate, hostnames ...net.IP) (*IssuedCertificate, error) {
-	// ipAddresses = []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback}
-	certificate, privateKey, err := createCertificate(x509.KeyUsageDigitalSignature, hostnames...)
+func IssueCertificate(ca *Certificate, params *CertificateParameters) (*IssuedCertificate, error) {
+	certificate, privateKey, err := createCertificate(params, x509.KeyUsageDigitalSignature)
 
 	if err != nil {
 		return nil, err

@@ -5,7 +5,6 @@ import (
 	"encoding/pem"
 	"fmt"
 	"log"
-	"net"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -14,7 +13,7 @@ import (
 )
 
 var certsGenerateCmd = &cobra.Command{
-	Use:     "generate",
+	Use:     "generate <CA certificate input file path> <CA certificate input key path> <output dir>",
 	Version: shared.Version,
 	Short:   "Generate daemon/server certificate and private key",
 	Long:    `A longer description`,
@@ -23,11 +22,13 @@ var certsGenerateCmd = &cobra.Command{
 
 func init() {
 	certsCmd.AddCommand(certsGenerateCmd)
+	certCmdAddFlags(certsGenerateCmd)
 }
 
 func certsGenerateCallback(cmd *cobra.Command, args []string) {
 	if len(args) < 3 {
-		log.Fatal("Please provide CA pem, CA key and output path!")
+		cmd.Help()
+		return
 	}
 
 	caCertPath := args[0]
@@ -81,7 +82,7 @@ func certsGenerateCallback(cmd *cobra.Command, args []string) {
 		PrivateKey: caKey,
 	}
 
-	issued, err := server.IssueCertificate(ca, net.ParseIP("127.0.0.1"))
+	issued, err := server.IssueCertificate(ca, certCmdParseFlags(cmd))
 
 	if err != nil {
 		log.Fatal(err)
