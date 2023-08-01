@@ -56,6 +56,9 @@ ENV PATH=/bin:${STEAMCMD_PACKAGE_DIR} \
     STEAMCMD_SERVER_HOME=${STEAMCMD_HOME}/server \
     STEAMCMD_SH=${STEAMCMD_PACKAGE_DIR}/steamcmd.sh
 
+COPY --from=steamcmd_builder /bin/basename /bin/basename
+COPY --from=steamcmd_builder /bin/env /bin/env
+COPY --from=steamcmd_builder /bin/uname /bin/uname
 COPY --from=steamcmd_builder /usr/bin/bash-static /bin/bash
 
 COPY --from=steamcmd_builder /etc/ssl /etc/ssl
@@ -63,10 +66,6 @@ COPY --from=steamcmd_builder /usr/share/zoneinfo/Etc/UTC /etc/localtime
 
 COPY --from=steamcmd_builder /steamcmd ${STEAMCMD_PACKAGE_DIR}
 COPY --from=steamcmd_builder /steamcmd-home ${HOME}
-
-COPY --from=glibc_builder /bin/basename /bin/basename
-COPY --from=glibc_builder /bin/env /bin/env
-COPY --from=glibc_builder /bin/uname /bin/uname
 
 COPY --from=glibc_builder /lib /lib
 COPY --from=steamcmd_builder /steamcmd-libs/* /lib
