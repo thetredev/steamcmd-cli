@@ -10,7 +10,7 @@ RUN apk add --no-cache git
 RUN --mount=type=bind,target=/go/src,source=. \
     version=$(git describe --tags || git rev-parse HEAD) && \
     go_module=$(grep "module" go.mod | head -1 | cut -d ' ' -f 2) && \
-    go get -u && \
+    go get && \
     go build \
         -ldflags "-s -w -X '${go_module}/shared.Version=${version}'" \
         -o /go/bin/steamcmd-cli
