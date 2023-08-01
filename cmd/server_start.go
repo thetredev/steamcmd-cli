@@ -10,7 +10,6 @@ var startCmd = &cobra.Command{
 	Use:     "start",
 	Version: shared.Version,
 	Short:   "Start the game server via the daemon socket",
-	Long:    `A longer description`,
 	Run:     startCallback,
 }
 

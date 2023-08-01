@@ -10,7 +10,6 @@ var logsCmd = &cobra.Command{
 	Use:     "logs",
 	Version: shared.Version,
 	Short:   "Retrieve game server logs from the daemon socket",
-	Long:    `A longer description`,
 	Run:     logsCallback,
 }
 

@@ -14,8 +14,7 @@ import (
 var certsCmd = &cobra.Command{
 	Use:     "certs",
 	Version: shared.Version,
-	Short:   "Cert stuff",
-	Long:    `A longer description`,
+	Short:   "Certificate management for secure daemon/server communication",
 	Run:     certsCallback,
 }
 

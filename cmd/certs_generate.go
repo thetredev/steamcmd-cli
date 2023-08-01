@@ -16,7 +16,6 @@ var certsGenerateCmd = &cobra.Command{
 	Use:     "generate <CA certificate input file path> <CA certificate input key path> <output dir>",
 	Version: shared.Version,
 	Short:   "Generate daemon/server certificate and private key",
-	Long:    `A longer description`,
 	Run:     certsGenerateCallback,
 }
 

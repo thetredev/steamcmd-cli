@@ -10,7 +10,6 @@ var consoleCmd = &cobra.Command{
 	Use:     "console",
 	Version: shared.Version,
 	Short:   "Send commands to the game server console via the daemon socket",
-	Long:    `A longer description`,
 	Run:     consoleCallback,
 }
 

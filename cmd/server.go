@@ -9,7 +9,6 @@ var serverCmd = &cobra.Command{
 	Use:     "server",
 	Version: shared.Version,
 	Short:   "Subcommands to communicate with the game server via the daemon socket",
-	Long:    `A longer description`,
 	Run:     serverCallback,
 }
 

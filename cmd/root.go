@@ -10,8 +10,7 @@ import (
 var rootCmd = &cobra.Command{
 	Use:     "steamcmd-cli",
 	Version: shared.Version,
-	Short:   "Custom SteamCMD client implementation written in Go",
-	Long:    `Some multiline description.`,
+	Short:   "Custom SteamCMD client and game server manager implementation written in Go",
 }
 
 func Execute() {

@@ -10,7 +10,6 @@ var updateCmd = &cobra.Command{
 	Use:     "update",
 	Version: shared.Version,
 	Short:   "Update the game server via the daemon socket",
-	Long:    `A longer description`,
 	Run:     updateCallback,
 }
 

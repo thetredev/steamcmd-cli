@@ -10,7 +10,6 @@ var daemonCmd = &cobra.Command{
 	Use:     "daemon",
 	Version: shared.Version,
 	Short:   "Run the daemon socket",
-	Long:    `A longer description`,
 	Run:     daemonCallback,
 }
 

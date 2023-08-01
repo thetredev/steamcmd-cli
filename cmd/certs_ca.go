@@ -14,7 +14,6 @@ var certsCaCmd = &cobra.Command{
 	Use:     "ca <output dir>",
 	Version: shared.Version,
 	Short:   "Generate CA certificate and private key",
-	Long:    `A longer description`,
 	Run:     certsCaCmdCallback,
 }
 
