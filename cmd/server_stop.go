@@ -18,10 +18,6 @@ func init() {
 }
 
 func stopCallback(cmd *cobra.Command, args []string) {
-	if len(args) < 2 {
-		cmd.Help()
-		return
-	}
-
-	server.SendMessage(args[0], args[1], shared.ServerStopMessage)
+	parseCertificateConfig(args)
+	server.SendMessage(shared.ServerStopMessage)
 }

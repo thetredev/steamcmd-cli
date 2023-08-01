@@ -18,10 +18,6 @@ func init() {
 }
 
 func consoleCallback(cmd *cobra.Command, args []string) {
-	if len(args) < 2 {
-		cmd.Help()
-		return
-	}
-
-	server.SendMessage(args[0], args[1], shared.ServerConsoleCommandMessage, args...)
+	parseCertificateConfig(args)
+	server.SendMessage(shared.ServerConsoleCommandMessage, args...)
 }

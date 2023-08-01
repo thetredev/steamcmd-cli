@@ -10,7 +10,7 @@ import (
 	"github.com/thetredev/steamcmd-cli/shared"
 )
 
-func SendMessage(certPath string, keyPath string, message string, args ...string) {
+func SendMessage(message string, args ...string) {
 	if len(shared.SocketConfig.SocketIp) == 0 {
 		log.Fatal("STEAMCMD_CLI_SOCKET_IP not set")
 	}
@@ -19,7 +19,7 @@ func SendMessage(certPath string, keyPath string, message string, args ...string
 		log.Fatal("STEAMCMD_CLI_SOCKET_PORT not set")
 	}
 
-	cert, err := tls.LoadX509KeyPair(certPath, keyPath)
+	cert, err := tls.LoadX509KeyPair(ServerCertificates.CertificatePath, ServerCertificates.CertificateKeyPath)
 
 	if err != nil {
 		log.Fatalf("Could not load server key pair: %s", err)
