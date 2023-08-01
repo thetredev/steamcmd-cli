@@ -18,10 +18,11 @@ func init() {
 }
 
 func daemonCallback(cmd *cobra.Command, args []string) {
-	if len(args) < 3 {
-		cmd.Help()
-		return
+	if len(args) >= 3 {
+		daemon.Config.CACertificatePath = args[0]
+		daemon.Config.CertificatePath = args[1]
+		daemon.Config.CertificateKeyPath = args[2]
 	}
 
-	daemon.StartSocket(args[0], args[1], args[2])
+	daemon.StartSocket()
 }

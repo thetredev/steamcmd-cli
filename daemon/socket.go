@@ -21,21 +21,21 @@ type Socket struct {
 	Connection net.Conn
 }
 
-func NewSocket(ip string, port int, caPath string, certPath string, keyPath string) *Socket {
-	cert, err := tls.LoadX509KeyPair(certPath, keyPath)
+func NewSocket(ip string, port int) *Socket {
+	cert, err := tls.LoadX509KeyPair(Config.CertificatePath, Config.CertificateKeyPath)
 
 	if err != nil {
 		log.Fatalf("Could not load daemon key pair: %s", err)
 	}
 
 	certpool := x509.NewCertPool()
-	pem, err := os.ReadFile(caPath)
+	ca, err := os.ReadFile(Config.CACertificatePath)
 
 	if err != nil {
 		log.Fatalf("Failed to read certificate authority: %v", err)
 	}
 
-	if !certpool.AppendCertsFromPEM(pem) {
+	if !certpool.AppendCertsFromPEM(ca) {
 		log.Fatalf("Could not parse certificate authority")
 	}
 
@@ -68,12 +68,12 @@ func (socket *Socket) SendMessage(message string) {
 	}
 }
 
-func StartSocket(caPath string, certPath string, keyPath string) {
+func StartSocket() {
 	if shared.SocketConfig.SocketPort <= 0 {
 		log.Fatal("STEAMCMD_CLI_SOCKET_PORT not set")
 	}
 
-	socket := NewSocket("0.0.0.0", shared.SocketConfig.SocketPort, caPath, certPath, keyPath)
+	socket := NewSocket("0.0.0.0", shared.SocketConfig.SocketPort)
 
 	server := NewServer()
 	server.Logger.Printf("Listening for incoming requests on port %d/TCP...\n", shared.SocketConfig.SocketPort)
