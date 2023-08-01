@@ -69,14 +69,14 @@ func (socket *Socket) SendMessage(message string) {
 }
 
 func StartSocket(caPath string, certPath string, keyPath string) {
-	if shared.Config.SocketPort <= 0 {
+	if shared.SocketConfig.SocketPort <= 0 {
 		log.Fatal("STEAMCMD_CLI_SOCKET_PORT not set")
 	}
 
-	socket := NewSocket("0.0.0.0", shared.Config.SocketPort, caPath, certPath, keyPath)
+	socket := NewSocket("0.0.0.0", shared.SocketConfig.SocketPort, caPath, certPath, keyPath)
 
 	server := NewServer()
-	server.Logger.Printf("Listening for incoming requests on port %d/TCP...\n", shared.Config.SocketPort)
+	server.Logger.Printf("Listening for incoming requests on port %d/TCP...\n", shared.SocketConfig.SocketPort)
 
 	for {
 		var err error

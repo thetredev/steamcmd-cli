@@ -11,11 +11,11 @@ import (
 )
 
 func SendMessage(certPath string, keyPath string, message string, args ...string) {
-	if len(shared.Config.SocketIp) == 0 {
+	if len(shared.SocketConfig.SocketIp) == 0 {
 		log.Fatal("STEAMCMD_CLI_SOCKET_IP not set")
 	}
 
-	if shared.Config.SocketPort <= 0 {
+	if shared.SocketConfig.SocketPort <= 0 {
 		log.Fatal("STEAMCMD_CLI_SOCKET_PORT not set")
 	}
 
@@ -30,7 +30,7 @@ func SendMessage(certPath string, keyPath string, message string, args ...string
 		InsecureSkipVerify: true,
 	}
 
-	socket, err := tls.Dial("tcp", fmt.Sprintf("%s:%d", shared.Config.SocketIp, shared.Config.SocketPort), &config)
+	socket, err := tls.Dial("tcp", fmt.Sprintf("%s:%d", shared.SocketConfig.SocketIp, shared.SocketConfig.SocketPort), &config)
 
 	if err != nil {
 		log.Fatalf("Could not establish connection: %s", err)
