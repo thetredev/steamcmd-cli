@@ -1,4 +1,4 @@
-ARG STEAMCMD_HOME=/var/lib/steamcmd
+ARG STEAMCMD_HOME=/steamcmd
 ARG STEAMCMD_PACKAGE_DIR=${STEAMCMD_HOME}/package
 
 ARG BASE_IMAGE=github.com/thetredev/steamcmd-cli:server
