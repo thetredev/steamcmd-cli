@@ -2,9 +2,9 @@ package server
 
 import (
 	"bufio"
+	"crypto/tls"
 	"fmt"
 	"log"
-	"net"
 	"strings"
 
 	"github.com/thetredev/steamcmd-cli/shared"
@@ -19,10 +19,21 @@ func SendMessage(message string, args ...string) {
 		log.Fatal("STEAMCMD_CLI_SOCKET_PORT not set")
 	}
 
-	socket, err := net.Dial("tcp", fmt.Sprintf("%s:%d", shared.Config.SocketIp, shared.Config.SocketPort))
+	cert, err := tls.LoadX509KeyPair("/certs/server/cert.pem", "/certs/server/cert.key")
 
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Could not load server key pair: %s", err)
+	}
+
+	config := tls.Config{
+		Certificates:       []tls.Certificate{cert},
+		InsecureSkipVerify: true,
+	}
+
+	socket, err := tls.Dial("tcp", fmt.Sprintf("%s:%d", shared.Config.SocketIp, shared.Config.SocketPort), &config)
+
+	if err != nil {
+		log.Fatalf("Could not establish connection: %s", err)
 	}
 
 	command := []string{message}

@@ -1,9 +1,13 @@
 package daemon
 
 import (
+	"crypto/rand"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"strings"
 	"time"
 
@@ -13,17 +17,38 @@ import (
 const tcpCongestionPreventionDelay = 1 * time.Millisecond
 
 type Socket struct {
-	Listener   *net.TCPListener
-	Connection *net.TCPConn
+	Listener   net.Listener
+	Connection net.Conn
 }
 
 func NewSocket(ip string, port int) *Socket {
-	addr := net.TCPAddr{
-		Port: shared.Config.SocketPort,
-		IP:   net.ParseIP(ip),
+	cert, err := tls.LoadX509KeyPair("/certs/daemon/cert.pem", "/certs/daemon/cert.key")
+
+	if err != nil {
+		log.Fatalf("Could not load daemon key pair: %s", err)
 	}
 
-	listener, err := net.ListenTCP("tcp", &addr)
+	certpool := x509.NewCertPool()
+	pem, err := os.ReadFile("/certs/ca/cert.pem")
+
+	if err != nil {
+		log.Fatalf("Failed to read certificate authority: %v", err)
+	}
+
+	if !certpool.AppendCertsFromPEM(pem) {
+		log.Fatalf("Could not parse certificate authority")
+	}
+
+	config := tls.Config{
+		Certificates: []tls.Certificate{cert},
+		ClientAuth:   tls.RequireAndVerifyClientCert,
+		ClientCAs:    certpool,
+		Rand:         rand.Reader,
+	}
+
+	addr := fmt.Sprintf("%s:%d", ip, port)
+
+	listener, err := tls.Listen("tcp", addr, &config)
 
 	if err != nil {
 		log.Fatal(err)
@@ -55,7 +80,23 @@ func StartSocket() {
 
 	for {
 		var err error
-		socket.Connection, err = socket.Listener.AcceptTCP()
+		socket.Connection, err = socket.Listener.Accept()
+
+		conn, ok := socket.Connection.(*tls.Conn)
+
+		if !ok {
+			server.Logger.Println("Could not establish connection.")
+			socket.Connection.Close()
+			continue
+		}
+
+		err = conn.Handshake()
+
+		if err != nil {
+			server.Logger.Printf("Handshake failed: %s\n", err.Error())
+			socket.Connection.Close()
+			continue
+		}
 
 		buffer := make([]byte, 256)
 		_, err = socket.Connection.Read(buffer)
