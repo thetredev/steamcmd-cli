@@ -48,7 +48,7 @@ FROM scratch
 ARG STEAMCMD_HOME
 ARG STEAMCMD_PACKAGE_DIR
 
-ENV PATH=/bin:${STEAMCMD_PACKAGE_DIR} \
+ENV PATH=/sbin:/bin \
     HOME=/home \
     LC_ALL=C \
     STEAMCMD_HOME=${STEAMCMD_HOME} \
@@ -56,10 +56,10 @@ ENV PATH=/bin:${STEAMCMD_PACKAGE_DIR} \
     STEAMCMD_SERVER_HOME=${STEAMCMD_HOME}/server \
     STEAMCMD_SH=${STEAMCMD_PACKAGE_DIR}/steamcmd.sh
 
-COPY --from=steamcmd_builder /bin/basename /bin/basename
-COPY --from=steamcmd_builder /bin/env /bin/env
-COPY --from=steamcmd_builder /bin/uname /bin/uname
-COPY --from=steamcmd_builder /usr/bin/bash-static /bin/bash
+COPY --from=steamcmd_builder /bin/basename /sbin/basename
+COPY --from=steamcmd_builder /bin/env /sbin/env
+COPY --from=steamcmd_builder /bin/uname /sbin/uname
+COPY --from=steamcmd_builder /usr/bin/bash-static /sbin/bash
 
 COPY --from=steamcmd_builder /etc/ssl /etc/ssl
 COPY --from=steamcmd_builder /usr/share/zoneinfo/Etc/UTC /etc/localtime
