@@ -19,5 +19,5 @@ func init() {
 
 func updateCallback(cmd *cobra.Command, args []string) {
 	parseCertificateConfig(args)
-	server.SendMessage(shared.ServerUpdateMessage)
+	server.SendMessage(shared.MESSAGE_SERVER_UPDATE)
 }

@@ -52,7 +52,7 @@ func SendMessage(message string, args ...string) {
 
 		message := string(buffer)
 
-		if strings.HasPrefix(message, shared.SocketEndMessage) {
+		if strings.HasPrefix(message, shared.MESSAGE_SOCKET_END) {
 			break
 		} else {
 			fmt.Print(message)

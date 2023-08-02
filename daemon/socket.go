@@ -113,20 +113,20 @@ func StartSocket() {
 		message := strings.Split(string(buffer), "\n")[0]
 
 		switch message {
-		case shared.ServerLogsMessage:
+		case shared.MESSAGE_SERVER_LOGS:
 			server.SendLogs(socket)
-		case shared.ServerStartMessage:
+		case shared.MESSAGE_SERVER_START:
 			if err := server.Start(socket); err != nil {
 				socket.SendMessage(err.Error())
 			} else {
 				socket.SendMessage("Game server started. You can now view its logs.")
 			}
-		case shared.ServerStopMessage:
+		case shared.MESSAGE_SERVER_STOP:
 			server.Stop(socket)
 
 			time.Sleep(TCP_CONGESTION_PREVENTION_DELAY)
 			socket.SendMessage("Game server stopped.")
-		case shared.ServerUpdateMessage:
+		case shared.MESSAGE_SERVER_UPDATE:
 			for {
 				success, err := server.Update(socket)
 
@@ -145,14 +145,14 @@ func StartSocket() {
 		}
 
 		time.Sleep(TCP_CONGESTION_PREVENTION_DELAY)
-		socket.SendMessage(shared.SocketEndMessage)
+		socket.SendMessage(shared.MESSAGE_SOCKET_END)
 
 		socket.Connection.Close()
 	}
 }
 
 func handleSpecialMessage(serverInstance *Server, socket *Socket, message string) bool {
-	if strings.HasPrefix(message, shared.ServerConsoleCommandMessage) {
+	if strings.HasPrefix(message, shared.MESSAGE_SERVER_CONSOLE_COMMAND) {
 		command := strings.Join(strings.Split(message, " ")[1:], " ")
 		serverInstance.DispatchConsoleCommand(socket, command)
 

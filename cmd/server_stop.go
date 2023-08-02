@@ -19,5 +19,5 @@ func init() {
 
 func stopCallback(cmd *cobra.Command, args []string) {
 	parseCertificateConfig(args)
-	server.SendMessage(shared.ServerStopMessage)
+	server.SendMessage(shared.MESSAGE_SERVER_STOP)
 }
