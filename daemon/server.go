@@ -33,6 +33,7 @@ func NewServer() *Server {
 func (server *Server) Delete() {
 	if server.Console != nil {
 		server.Console.Delete()
+		server.Console = nil
 	}
 
 	server.Command = nil
