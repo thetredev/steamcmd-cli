@@ -71,15 +71,16 @@ func (console *ServerConsole) SendCommandReplies(socket *Socket, command string)
 	}
 }
 
-func (console *ServerConsole) SendLogs(socket *Socket) int {
+func (console *ServerConsole) SendLogs(socket *Socket) (int, int) {
+	outputCopy := console.Output
 	bytes := 0
 
-	for _, line := range console.Output {
+	for _, line := range outputCopy {
 		socket.SendMessage(line)
 		time.Sleep(TCP_CONGESTION_PREVENTION_DELAY)
 
 		bytes += len(line)
 	}
 
-	return bytes
+	return len(outputCopy), bytes
 }

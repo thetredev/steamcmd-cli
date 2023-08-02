@@ -275,8 +275,8 @@ func (server *Server) SendLogs(socket *Socket) {
 	if server.IsRunning() {
 		server.Logger.Println("Sending game server logs")
 
-		bytes := server.Console.SendLogs(socket)
-		server.Logger.Printf("Sent %d bytes (%d lines) of game server logs", bytes, len(server.Console.Output))
+		lines, bytes := server.Console.SendLogs(socket)
+		server.Logger.Printf("Sent %d bytes (%d lines) of game server logs", bytes, lines)
 	} else {
 		socket.SendAndLogMessage(server, "ignoring: Game server not running. Nothing to send.")
 	}
