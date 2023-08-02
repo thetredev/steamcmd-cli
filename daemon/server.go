@@ -14,7 +14,7 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-const serverConsoleInputDelay time.Duration = 250 * time.Millisecond
+const SERVER_CONSOLE_INPUT_DELAY time.Duration = 250 * time.Millisecond
 
 type Server struct {
 	Logger  *log.Logger
@@ -312,7 +312,7 @@ func (server *Server) DispatchConsoleCommand(socket *Socket, command string) {
 			socket.SendMessage(fmt.Sprintln(message))
 
 			// ensure the console replies are printed to as expected
-			time.Sleep(serverConsoleInputDelay)
+			time.Sleep(SERVER_CONSOLE_INPUT_DELAY)
 
 			server.Logger.Printf("Sending game server console replies for command '%s'...\n", command)
 			server.Console.SendCommandReplies(socket, command)
