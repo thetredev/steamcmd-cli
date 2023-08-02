@@ -19,7 +19,7 @@ var certsCmd = &cobra.Command{
 }
 
 func init() {
-	serverCmd.AddCommand(certsCmd)
+	rootCmd.AddCommand(certsCmd)
 }
 
 func certsCallback(cmd *cobra.Command, args []string) {
