@@ -14,7 +14,7 @@ import (
 	"github.com/thetredev/steamcmd-cli/shared"
 )
 
-const tcpCongestionPreventionDelay = 1 * time.Millisecond
+const TCP_CONGESTION_PREVENTION_DELAY = 1 * time.Millisecond
 
 type Socket struct {
 	Listener   net.Listener
@@ -125,7 +125,7 @@ func StartSocket() {
 		case shared.ServerStopMessage:
 			server.Stop(socket)
 
-			time.Sleep(tcpCongestionPreventionDelay)
+			time.Sleep(TCP_CONGESTION_PREVENTION_DELAY)
 			socket.SendMessage("Game server stopped.")
 		case shared.ServerUpdateMessage:
 			for {
@@ -145,7 +145,7 @@ func StartSocket() {
 			}
 		}
 
-		time.Sleep(tcpCongestionPreventionDelay)
+		time.Sleep(TCP_CONGESTION_PREVENTION_DELAY)
 		socket.SendMessage(shared.SocketEndMessage)
 
 		socket.Connection.Close()

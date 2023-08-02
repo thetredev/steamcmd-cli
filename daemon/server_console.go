@@ -67,7 +67,7 @@ func (console *ServerConsole) SendCommandReplies(socket *Socket, command string)
 	// send all console replies to receiver in correct order
 	for i := len(reversedLines) - 1; i > -1; i-- {
 		socket.SendMessage(reversedLines[i])
-		time.Sleep(tcpCongestionPreventionDelay)
+		time.Sleep(TCP_CONGESTION_PREVENTION_DELAY)
 	}
 }
 
@@ -76,7 +76,7 @@ func (console *ServerConsole) SendLogs(socket *Socket) int {
 
 	for _, line := range console.Output {
 		socket.SendMessage(line)
-		time.Sleep(tcpCongestionPreventionDelay)
+		time.Sleep(TCP_CONGESTION_PREVENTION_DELAY)
 
 		bytes += len(line)
 	}
