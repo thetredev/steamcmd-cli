@@ -32,14 +32,11 @@ func (console *ServerConsole) AppendOutputLine(line string) {
 }
 
 func (console *ServerConsole) ListenForInput() {
-	for {
-		select {
-		case input := <-console.Input:
-			console.Pty.WriteString(fmt.Sprintln(input))
+	for input := range console.Input {
+		console.Pty.WriteString(fmt.Sprintln(input))
 
-			if input == "quit" {
-				return
-			}
+		if input == "quit" {
+			return
 		}
 	}
 }
