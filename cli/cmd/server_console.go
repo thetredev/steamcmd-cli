@@ -7,7 +7,7 @@ import (
 )
 
 var consoleCmd = &cobra.Command{
-	Use:     "console",
+	Use:     "console [server certificate file] [server key file] <command list>",
 	Version: shared.Version,
 	Short:   "Send commands to the game server console via the daemon socket",
 	Run:     consoleCallback,

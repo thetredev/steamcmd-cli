@@ -7,7 +7,7 @@ import (
 )
 
 var startCmd = &cobra.Command{
-	Use:     "start",
+	Use:     "start [server certificate file] [server key file]",
 	Version: shared.Version,
 	Short:   "Start the game server via the daemon socket",
 	Run:     startCallback,

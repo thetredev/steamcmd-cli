@@ -7,7 +7,7 @@ import (
 )
 
 var stopCmd = &cobra.Command{
-	Use:     "stop",
+	Use:     "stop [server certificate file] [server key file]",
 	Version: shared.Version,
 	Short:   "Stop the game server via the daemon socket",
 	Run:     stopCallback,

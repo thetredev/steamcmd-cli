@@ -7,7 +7,7 @@ import (
 )
 
 var logsCmd = &cobra.Command{
-	Use:     "logs",
+	Use:     "logs [server certificate file] [server key file]",
 	Version: shared.Version,
 	Short:   "Retrieve game server logs from the daemon socket",
 	Run:     logsCallback,
