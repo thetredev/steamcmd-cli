@@ -33,7 +33,7 @@ func (console *ServerConsole) AppendOutputLine(line string) {
 
 func (console *ServerConsole) ListenForInput() {
 	for input := range console.Input {
-		console.Pty.WriteString(fmt.Sprintln(input))
+		fmt.Fprintln(console.Pty, input)
 
 		if input == "quit" {
 			return
