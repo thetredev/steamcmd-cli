@@ -24,6 +24,7 @@ func NewServerConsole() *ServerConsole {
 func (console *ServerConsole) Delete() {
 	console.Pty = nil
 	console.Output = make([]string, 0)
+	close(console.Input)
 }
 
 func (console *ServerConsole) AppendOutputLine(line string) {
