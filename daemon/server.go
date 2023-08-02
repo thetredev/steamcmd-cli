@@ -158,7 +158,7 @@ func gameString(server *Server) (string, error) {
 		return dirName, nil
 	}
 
-	return "", errors.New("Game not found. Try 'update' first.")
+	return "", errors.New("game not found, try 'update' first")
 }
 
 func maxplayersString(server *Server) string {
