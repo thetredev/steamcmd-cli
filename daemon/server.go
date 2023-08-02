@@ -241,12 +241,24 @@ func (server *Server) Start(socket *Socket) error {
 		server.EnableTickrate()
 	}
 
+	socket.SendMessage("Game server started. You can now view its logs.")
 	return nil
 }
 
 func (server *Server) Stop(socket *Socket) {
 	server.Logger.Println("Received request to stop the game server")
-	server.DispatchConsoleCommand(socket, "quit")
+
+	if server.IsRunning() {
+		server.DispatchConsoleCommand(socket, "quit")
+
+		time.Sleep(TCP_CONGESTION_PREVENTION_DELAY)
+		socket.SendMessage("Game server stopped.")
+	} else {
+		message := "Game server not running. Nothing to stop."
+
+		socket.SendMessage(message)
+		server.Logger.Printf("Ignoring: %s\n", message)
+	}
 }
 
 func (server *Server) IsRunning() bool {
@@ -275,7 +287,10 @@ func (server *Server) SendLogs(socket *Socket) {
 		bytes := server.Console.SendLogs(socket)
 		server.Logger.Printf("Sent %d bytes (%d lines) of game server logs", bytes, len(server.Console.Output))
 	} else {
-		server.Logger.Println("Ignoring: Nothing to send.")
+		message := "Game server not running. Nothing to send."
+
+		socket.SendMessage(message)
+		server.Logger.Printf("Ignoring: %s\n", message)
 	}
 }
 

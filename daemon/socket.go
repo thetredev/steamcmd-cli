@@ -119,15 +119,10 @@ func StartSocket() {
 		case shared.MESSAGE_SERVER_START:
 			if err := server.Start(socket); err != nil {
 				socket.SendMessage(err.Error())
-			} else {
-				socket.SendMessage("Game server started. You can now view its logs.")
 			}
 
 		case shared.MESSAGE_SERVER_STOP:
 			server.Stop(socket)
-
-			time.Sleep(TCP_CONGESTION_PREVENTION_DELAY)
-			socket.SendMessage("Game server stopped.")
 
 		case shared.MESSAGE_SERVER_UPDATE:
 			for {
