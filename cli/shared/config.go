@@ -8,7 +8,7 @@ import (
 )
 
 type SocketConfigType struct {
-	SocketIp   string `env:"STEAMCMD_CLI_SOCKET_IP,default=127.0.0.1"`
+	SocketIp   string `env:"STEAMCMD_CLI_SOCKET_IP,default=0.0.0.0"`
 	SocketPort int    `env:"STEAMCMD_CLI_SOCKET_PORT,default=65000"`
 }
 

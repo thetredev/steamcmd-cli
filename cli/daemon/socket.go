@@ -21,7 +21,7 @@ type Socket struct {
 	Connection net.Conn
 }
 
-func NewSocket(ip string, port int) *Socket {
+func NewSocket() *Socket {
 	cert, err := tls.LoadX509KeyPair(Config.CertificatePath, Config.CertificateKeyPath)
 
 	if err != nil {
@@ -46,7 +46,7 @@ func NewSocket(ip string, port int) *Socket {
 		Rand:         rand.Reader,
 	}
 
-	addr := fmt.Sprintf("%s:%d", ip, port)
+	addr := fmt.Sprintf("%s:%d", shared.SocketConfig.SocketIp, shared.SocketConfig.SocketPort)
 	listener, err := tls.Listen("tcp", addr, &config)
 
 	if err != nil {
@@ -77,7 +77,7 @@ func StartSocket() {
 		log.Fatal("STEAMCMD_CLI_SOCKET_PORT not set")
 	}
 
-	socket := NewSocket("0.0.0.0", shared.SocketConfig.SocketPort)
+	socket := NewSocket()
 
 	server := NewServer()
 	server.Logger.Printf("Listening for incoming requests on port %d/TCP...\n", shared.SocketConfig.SocketPort)
