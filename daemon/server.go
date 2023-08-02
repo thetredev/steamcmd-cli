@@ -51,10 +51,7 @@ func (server *Server) Update(socket *Socket) (bool, error) {
 	server.Logger.Println("Received request to update the game server")
 
 	if server.IsRunning() {
-		message := "Server is currently running, cannot update."
-
-		socket.SendMessage(message)
-		server.Logger.Println("Ignoring:", message)
+		socket.SendAndLogMessage(server, "ignoring: Server is currently running, cannot update.")
 		return true, nil
 	}
 
@@ -177,10 +174,7 @@ func (server *Server) Start(socket *Socket) error {
 	server.Logger.Println("Received request to start the game server")
 
 	if server.IsRunning() {
-		message := fmt.Sprintf("Server already running (PID: %d)", server.Command.Process.Pid)
-
-		socket.SendMessage(message)
-		server.Logger.Println("Ignoring:", message)
+		return fmt.Errorf("ignoring: Server already running (PID: %d)", server.Command.Process.Pid)
 	}
 
 	var err error
@@ -254,10 +248,7 @@ func (server *Server) Stop(socket *Socket) {
 		time.Sleep(TCP_CONGESTION_PREVENTION_DELAY)
 		socket.SendMessage("Game server stopped.")
 	} else {
-		message := "Game server not running. Nothing to stop."
-
-		socket.SendMessage(message)
-		server.Logger.Printf("Ignoring: %s\n", message)
+		socket.SendAndLogMessage(server, "ignoring: Game server not running. Nothing to stop.")
 	}
 }
 
@@ -287,10 +278,7 @@ func (server *Server) SendLogs(socket *Socket) {
 		bytes := server.Console.SendLogs(socket)
 		server.Logger.Printf("Sent %d bytes (%d lines) of game server logs", bytes, len(server.Console.Output))
 	} else {
-		message := "Game server not running. Nothing to send."
-
-		socket.SendMessage(message)
-		server.Logger.Printf("Ignoring: %s\n", message)
+		socket.SendAndLogMessage(server, "ignoring: Game server not running. Nothing to send.")
 	}
 }
 

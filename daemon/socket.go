@@ -67,6 +67,11 @@ func (socket *Socket) SendMessage(message string) {
 	}
 }
 
+func (socket *Socket) SendAndLogMessage(server *Server, message string) {
+	socket.SendMessage(message)
+	server.Logger.Println(message)
+}
+
 func StartSocket() {
 	if shared.SocketConfig.SocketPort <= 0 {
 		log.Fatal("STEAMCMD_CLI_SOCKET_PORT not set")
