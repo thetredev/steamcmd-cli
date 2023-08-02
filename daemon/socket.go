@@ -82,6 +82,10 @@ func StartSocket() {
 		var err error
 		socket.Connection, err = socket.Listener.Accept()
 
+		if err != nil {
+			log.Fatal("could not listen on socket, aborting...")
+		}
+
 		conn, ok := socket.Connection.(*tls.Conn)
 
 		if !ok {
