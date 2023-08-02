@@ -125,11 +125,6 @@ func gameString(server *Server) (string, error) {
 	}
 
 	entries, _ := os.ReadDir(Config.ServerHome)
-
-	for _, entry := range entries {
-		server.Logger.Println(entry)
-	}
-
 	invalidEntries := []string{
 		"bin",
 		"hl2",
