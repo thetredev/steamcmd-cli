@@ -1,12 +1,6 @@
-FROM i386/golang:1.20.6-alpine3.18 AS builder
+ARG GO_IMAGE
+FROM ${GO_IMAGE} AS builder
 
-ENV CGO_ENABLED=0 \
-    GOOS=linux
-
-WORKDIR /go/src
-
-RUN apk update
-RUN apk add --no-cache git
 RUN --mount=type=bind,target=/go/src,source=. \
     version=$(git describe --tags || git rev-parse HEAD) && \
     go_module=$(grep "module" go.mod | head -1 | cut -d ' ' -f 2) && \
