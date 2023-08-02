@@ -47,7 +47,6 @@ func NewSocket(ip string, port int) *Socket {
 	}
 
 	addr := fmt.Sprintf("%s:%d", ip, port)
-
 	listener, err := tls.Listen("tcp", addr, &config)
 
 	if err != nil {
@@ -156,6 +155,7 @@ func handleSpecialMessage(serverInstance *Server, socket *Socket, message string
 	if strings.HasPrefix(message, shared.ServerConsoleCommandMessage) {
 		command := strings.Join(strings.Split(message, " ")[1:], " ")
 		serverInstance.DispatchConsoleCommand(socket, command)
+
 		return true
 	}
 
