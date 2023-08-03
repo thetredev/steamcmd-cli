@@ -27,6 +27,7 @@ Communication between the *deamon* and the *server* is accomplished via a TCP so
 - [Installation](#installation)
 - [Default configuration](#default-configuration)
 - [Certificate configuration](#certificate-configuration)
+- [Using container images](#using-container-images)
 - [Shell auto-completions](#shell-auto-completions)
 
 # CLI commands overview
@@ -386,8 +387,108 @@ $ cp daemon.key /path/to/certs/server/cert.key
 $ docker run -v /path/to/certs:/certs:ro ....
 ```
 
+# Using container images
+This section assumes container images were built using the `build_docker.sh` script.
 
-## Shell auto-completions
+## Create certificates
+
+### CA
+```
+$ docker run --rm \
+  -v $(pwd)/certs:/certs \
+  --entrypoint /bin/steamcmd-cli \
+  github.com/thetredev/steamcmd-cli:server certs ca /certs/ca
+```
+
+### Daemon
+```
+$ docker run --rm \
+  -v $(pwd)/certs:/certs \
+  --entrypoint /bin/steamcmd-cli \
+  github.com/thetredev/steamcmd-cli:server certs generate /certs/ca/cert.pem /certs/ca/cert.key /certs/daemon
+```
+
+### Server
+```
+$ docker run --rm \
+  -v $(pwd)/certs:/certs \
+  --entrypoint /bin/steamcmd-cli \
+  github.com/thetredev/steamcmd-cli:server certs generate /certs/ca/cert.pem /certs/ca/cert.key /certs/server
+```
+
+### Fix local file permissions
+```
+$ sudo chown -R $(id -u):$(id -g) ./certs
+```
+
+## Create a container network for internal communication
+```
+$ docker network create steamcmd-cli
+cd82a09ca68f10165ce52fbd8273fae4b3fd1201a9216336d2b91df74f71ebc0
+```
+
+## Run the Daemon container (Counter-Strike: Source)
+```
+$ docker run --rm \
+  -v $(pwd)/certs:/certs:ro \
+  -v /tmp/srcds/css:/steamcmd/server \
+  -p 27015:27015/udp \
+  -e STEAMCMD_SERVER_MAP=de_dust2 \
+  -e STEAMCMD_SERVER_MAXPLAYERS=16 \
+  -e STEAMCMD_SERVER_APPID=232330 \
+  --network steamcmd-cli \
+  --name daemon \
+  github.com/thetredev/steamcmd-cli:daemon
+```
+
+## Manage the game server using the Server container
+
+### Update
+```
+$ docker run --rm \
+  -v $(pwd)/certs:/certs:ro \
+  -e STEAMCMD_CLI_SOCKET_IP=daemon \
+  --network steamcmd-cli \
+  github.com/thetredev/steamcmd-cli:server update
+```
+
+### Start
+```
+$ docker run --rm \
+  -v $(pwd)/certs:/certs:ro \
+  -e STEAMCMD_CLI_SOCKET_IP=daemon \
+  --network steamcmd-cli \
+  github.com/thetredev/steamcmd-cli:server start
+```
+
+### Logs
+```
+$ docker run --rm \
+  -v $(pwd)/certs:/certs:ro \
+  -e STEAMCMD_CLI_SOCKET_IP=daemon \
+  --network steamcmd-cli \
+  github.com/thetredev/steamcmd-cli:server logs
+```
+
+### Console
+```
+$ docker run --rm \
+  -v $(pwd)/certs:/certs:ro \
+  -e STEAMCMD_CLI_SOCKET_IP=daemon \
+  --network steamcmd-cli \
+  github.com/thetredev/steamcmd-cli:server console say hi
+```
+
+### Stop
+```
+$ docker run --rm \
+  -v $(pwd)/certs:/certs:ro \
+  -e STEAMCMD_CLI_SOCKET_IP=daemon \
+  --network steamcmd-cli \
+  github.com/thetredev/steamcmd-cli:server stop
+```
+
+# Shell auto-completions
 
 ### Bash
 System-wide:
