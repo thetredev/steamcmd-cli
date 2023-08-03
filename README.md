@@ -486,6 +486,30 @@ $ docker run --rm \
   github.com/thetredev/steamcmd-cli:latest server stop
 ```
 
+## Or: Use the CLI tool locally to interact with the Daemon container
+
+### Run the Daemon container with an exposed port (Counter-Strike: Source)
+```
+$ docker run --rm \
+  -v $(pwd)/certs:/certs:ro \
+  -v /tmp/srcds/css:/steamcmd/server \
+  -p 27015:27015/udp \
+  -p 65000:65000/tcp \
+  -e STEAMCMD_SERVER_MAP=de_dust2 \
+  -e STEAMCMD_SERVER_MAXPLAYERS=16 \
+  -e STEAMCMD_SERVER_APPID=232330 \
+  github.com/thetredev/steamcmd-cli:daemon
+```
+
+### Run the CLI locally
+```
+$ export STEAMCMD_CLI_SOCKET_IP=127.0.0.1
+$ export STEAMCMD_CLI_CERTIFICATE_PATH=$(pwd)/certs/server/cert.pem
+$ export STEAMCMD_CLI_CERTIFICATE_KEY_PATH=$(pwd)/certs/server/cert.key
+$ ./steamcmd-cli server update
+...
+```
+
 # Shell auto-completions
 
 ### Bash
