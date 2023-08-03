@@ -65,7 +65,7 @@ FROM ${RUNTIME_BUILDER_IMAGE} AS runtime_builder
 
 WORKDIR /steamcmd-libs
 RUN cp /usr/lib/i386-linux-gnu/libSDL2*.so.0.* .
-RUN for _lib in $(ls -1); do cp $_lib $(echo $_lib | grep -o '.*\.so'); done
+RUN for _lib in $(ls -1); do ln -sf $_lib $(pwd)/$(echo $_lib | grep -o '.*\.so'); done
 RUN cp /usr/lib/i386-linux-gnu/libstdc++.so.6.* ./libstdc++.so.6
 
 
