@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -160,6 +161,18 @@ func handleSpecialMessage(serverInstance *Server, socket *Socket, message string
 		command := strings.Join(strings.Split(message, " ")[1:], " ")
 		serverInstance.DispatchConsoleCommand(socket, command)
 
+		return true
+	}
+
+	if strings.HasPrefix(message, shared.MESSAGE_SERVER_FILES_LIST) {
+		args := strings.Split(message, " ")
+		rootPath := Config.ServerHome
+
+		if len(args) > 1 {
+			rootPath = filepath.Join(rootPath, args[1])
+		}
+
+		serverInstance.ListFiles(socket, rootPath)
 		return true
 	}
 

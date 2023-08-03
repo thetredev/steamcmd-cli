@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/creack/pty"
+	"github.com/thetredev/steamcmd-cli/shared"
 	"golang.org/x/exp/slices"
 )
 
@@ -318,5 +319,17 @@ func (server *Server) EnableTickrate() {
 
 	for _, tickrateCvar := range tickrateCvars {
 		server.Console.Input <- fmt.Sprintf("%s %d", tickrateCvar, Config.ServerTickrate)
+	}
+}
+
+func (server *Server) ListFiles(socket *Socket, walkPath string) {
+	server.Logger.Println("Received request to list game server files")
+
+	filesFound, err := shared.TransferFileList(socket, Config.ServerHome, walkPath, TCP_CONGESTION_PREVENTION_DELAY)
+
+	if err != nil {
+		socket.SendAndLogMessage(server, fmt.Sprintf("ERR LIST FILES: %s", err.Error()))
+	} else {
+		server.Logger.Printf("Sent a list of %d files", filesFound)
 	}
 }
