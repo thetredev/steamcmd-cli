@@ -5,6 +5,10 @@ ARG STEAMCMD_PACKAGE_DIR=${STEAMCMD_HOME}/package
 ARG GO_IMAGE
 ARG CLI_IMAGE=github.com/thetredev/steamcmd-cli:latest
 
+ARG STEAMCMD_BUILDER_IMAGE=i386/debian:bookworm-20230725-slim
+ARG RUNTIME_BUILDER_IMAGE=registry.gitlab.steamos.cloud/steamrt/sniper/platform:0.20230712.54652
+ARG GLIBC_BUILDER_IMAGE=i386/busybox:1.36.1-glibc
+
 FROM ${CLI_IMAGE} AS cli_builder
 FROM ${GO_IMAGE} AS docker_builder
 
@@ -14,7 +18,7 @@ RUN --mount=type=bind,target=/go/src,source=. \
     go build -C docker -o /go/bin/steamcmd-cli-docker
 
 
-FROM i386/debian:bookworm-20230725-slim AS steamcmd_builder
+FROM ${STEAMCMD_BUILDER_IMAGE} AS steamcmd_builder
 
 ARG HOME
 ARG STEAMCMD_HOME
@@ -57,7 +61,7 @@ RUN grep root /etc/shadow | head -1 > shadow
 RUN grep steamcmd /etc/shadow >> shadow
 
 
-FROM registry.gitlab.steamos.cloud/steamrt/sniper/platform:0.20230712.54652 AS runtime_builder
+FROM ${RUNTIME_BUILDER_IMAGE} AS runtime_builder
 
 WORKDIR /steamcmd-libs
 RUN cp /usr/lib/i386-linux-gnu/libSDL2*.so.0.* .
@@ -65,7 +69,7 @@ RUN for _lib in $(ls -1); do cp $_lib $(echo $_lib | grep -o '.*\.so'); done
 RUN cp /usr/lib/i386-linux-gnu/libstdc++.so.6.* ./libstdc++.so.6
 
 
-FROM i386/busybox:1.36.1-glibc AS glibc_builder
+FROM ${GLIBC_BUILDER_IMAGE} AS glibc_builder
 FROM scratch
 
 ARG HOME
