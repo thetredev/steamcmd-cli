@@ -6,7 +6,7 @@ ARG GO_IMAGE
 ARG CLI_IMAGE=github.com/thetredev/steamcmd-cli:latest
 
 ARG STEAMCMD_BUILDER_IMAGE=i386/debian:bookworm-20230725-slim
-ARG RUNTIME_BUILDER_IMAGE=registry.gitlab.steamos.cloud/steamrt/sniper/platform:0.20230712.54652
+ARG RUNTIME_BUILDER_IMAGE=registry.gitlab.steamos.cloud/steamrt/sniper/platform:0.20230718.55074
 ARG GLIBC_BUILDER_IMAGE=i386/busybox:1.36.1-glibc
 
 FROM ${CLI_IMAGE} AS cli_builder
