@@ -3,7 +3,7 @@ ARG STEAMCMD_HOME=/steamcmd
 ARG STEAMCMD_PACKAGE_DIR=${STEAMCMD_HOME}/package
 
 ARG GO_IMAGE
-ARG CLI_IMAGE=github.com/thetredev/steamcmd-cli:server
+ARG CLI_IMAGE=github.com/thetredev/steamcmd-cli:latest
 
 FROM ${CLI_IMAGE} AS cli_builder
 FROM ${GO_IMAGE} AS docker_builder

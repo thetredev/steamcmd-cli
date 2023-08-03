@@ -278,9 +278,9 @@ $ ./build_docker.sh
 This command will create the following development images:
 | Image | Description |
 | --- | --- |
-| `github.com/thetredev/steamcmd-cli:golang` | Official i386 `golang` Alpine image with `git` installed. |
-| `github.com/thetredev/steamcmd-cli:server` | Scratch image with `steamcmd-cli` executable located at `/bin/steamcmd-cli`. The entrypoint is set to `/bin/steamcmd server`. |
-| `github.com/thetredev/steamcmd-cli:daemon` | Scratch image with `steamcmd-cli` executable located at `/bin/steamcmd-cli`. All necessary SteamCMD and HLDS/SRCDS dependencies are preinstalled. The entrypoint is set to `/bin/steamcmd daemon`. |
+| `github.com/thetredev/steamcmd-cli:golang` | Official i386 `golang` v1.20 Alpine image with `git` installed. |
+| `github.com/thetredev/steamcmd-cli:latest` | Scratch image with `steamcmd-cli` executable located at `/bin/steamcmd-cli`.<br/><br/>The entrypoint is set to `/bin/steamcmd-cli`. |
+| `github.com/thetredev/steamcmd-cli:daemon` | Scratch image with `steamcmd-cli` executable located at `/bin/steamcmd-cli`. All necessary SteamCMD and HLDS/SRCDS dependencies are preinstalled. SteamCMD itself is preinstalled.<br/><br/>The entrypoint is set to `/bin/steamcmd daemon`. |
 
 The containers can now be run locally:
 ```
@@ -288,27 +288,25 @@ The containers can now be run locally:
 $ docker run --rm -v $(pwd)/certs:/certs:ro github.com/thetredev/steamcmd-cli:daemon
 2023/08/02 21:35:44 Listening for incoming requests on port 65000/TCP...
 
-# Server
-$ docker run --rm -v $(pwd)/certs:/certs:ro github.com/thetredev/steamcmd-cli:server
-Subcommands to communicate with the game server via the daemon socket
+# CLI
+$ docker run --rm -v $(pwd)/certs:/certs:ro github.com/thetredev/steamcmd-cli:latest
+Custom SteamCMD client and game server manager implementation written in Go
 
 Usage:
-  steamcmd-cli server [flags]
-  steamcmd-cli server [command]
+  steamcmd-cli [command]
 
 Available Commands:
   certs       Certificate management for secure daemon/server communication
-  console     Send commands to the game server console via the daemon socket
-  logs        Retrieve game server logs from the daemon socket
-  start       Start the game server via the daemon socket
-  stop        Stop the game server via the daemon socket
-  update      Update the game server via the daemon socket
+  completion  Generate the autocompletion script for the specified shell
+  daemon      Run the daemon socket
+  help        Help about any command
+  server      Subcommands to communicate with the game server via the daemon socket
 
 Flags:
-  -h, --help      help for server
-  -v, --version   version for server
+  -h, --help      help for steamcmd-cli
+  -v, --version   version for steamcmd-cli
 
-Use "steamcmd-cli server [command] --help" for more information about a command.
+Use "steamcmd-cli [command] --help" for more information about a command.
 ```
 
 # Default configuration
@@ -397,7 +395,7 @@ This section assumes container images were built using the `build_docker.sh` scr
 $ docker run --rm \
   -v $(pwd)/certs:/certs \
   --entrypoint /bin/steamcmd-cli \
-  github.com/thetredev/steamcmd-cli:server certs ca /certs/ca
+  github.com/thetredev/steamcmd-cli:latest certs ca /certs/ca
 ```
 
 ### Daemon
@@ -405,7 +403,7 @@ $ docker run --rm \
 $ docker run --rm \
   -v $(pwd)/certs:/certs \
   --entrypoint /bin/steamcmd-cli \
-  github.com/thetredev/steamcmd-cli:server certs generate /certs/ca/cert.pem /certs/ca/cert.key /certs/daemon
+  github.com/thetredev/steamcmd-cli:latest certs generate /certs/ca/cert.pem /certs/ca/cert.key /certs/daemon
 ```
 
 ### Server
@@ -413,7 +411,7 @@ $ docker run --rm \
 $ docker run --rm \
   -v $(pwd)/certs:/certs \
   --entrypoint /bin/steamcmd-cli \
-  github.com/thetredev/steamcmd-cli:server certs generate /certs/ca/cert.pem /certs/ca/cert.key /certs/server
+  github.com/thetredev/steamcmd-cli:latest certs generate /certs/ca/cert.pem /certs/ca/cert.key /certs/server
 ```
 
 ### Fix local file permissions
@@ -441,7 +439,7 @@ $ docker run --rm \
   github.com/thetredev/steamcmd-cli:daemon
 ```
 
-## Manage the game server using the Server container
+## Manage the game server using the CLI container
 
 ### Update
 ```
@@ -449,7 +447,7 @@ $ docker run --rm \
   -v $(pwd)/certs:/certs:ro \
   -e STEAMCMD_CLI_SOCKET_IP=daemon \
   --network steamcmd-cli \
-  github.com/thetredev/steamcmd-cli:server update
+  github.com/thetredev/steamcmd-cli:latest server update
 ```
 
 ### Start
@@ -458,7 +456,7 @@ $ docker run --rm \
   -v $(pwd)/certs:/certs:ro \
   -e STEAMCMD_CLI_SOCKET_IP=daemon \
   --network steamcmd-cli \
-  github.com/thetredev/steamcmd-cli:server start
+  github.com/thetredev/steamcmd-cli:latest server start
 ```
 
 ### Logs
@@ -467,7 +465,7 @@ $ docker run --rm \
   -v $(pwd)/certs:/certs:ro \
   -e STEAMCMD_CLI_SOCKET_IP=daemon \
   --network steamcmd-cli \
-  github.com/thetredev/steamcmd-cli:server logs
+  github.com/thetredev/steamcmd-cli:latest server logs
 ```
 
 ### Console
@@ -476,7 +474,7 @@ $ docker run --rm \
   -v $(pwd)/certs:/certs:ro \
   -e STEAMCMD_CLI_SOCKET_IP=daemon \
   --network steamcmd-cli \
-  github.com/thetredev/steamcmd-cli:server console say hi
+  github.com/thetredev/steamcmd-cli:latest server console say hi
 ```
 
 ### Stop
@@ -485,7 +483,7 @@ $ docker run --rm \
   -v $(pwd)/certs:/certs:ro \
   -e STEAMCMD_CLI_SOCKET_IP=daemon \
   --network steamcmd-cli \
-  github.com/thetredev/steamcmd-cli:server stop
+  github.com/thetredev/steamcmd-cli:latest server stop
 ```
 
 # Shell auto-completions

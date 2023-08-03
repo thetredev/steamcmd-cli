@@ -13,4 +13,4 @@ RUN --mount=type=bind,target=/go/src,source=. \
 FROM scratch
 COPY --from=builder /go/bin/steamcmd-cli /bin/steamcmd-cli
 
-ENTRYPOINT [ "/bin/steamcmd-cli", "server" ]
+ENTRYPOINT [ "/bin/steamcmd-cli" ]
