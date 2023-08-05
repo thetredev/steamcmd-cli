@@ -333,3 +333,13 @@ func (server *Server) ListFiles(socket *Socket, walkPath string) {
 		server.Logger.Printf("Sent a list of %d files", filesFound)
 	}
 }
+
+func (server *Server) TransferFile(socket *Socket, filePath string) {
+	server.Logger.Println("Received request to download game server files")
+
+	err := shared.TransferFile(socket, Config.ServerHome, filePath, TCP_CONGESTION_PREVENTION_DELAY, server.Logger)
+
+	if err != nil {
+		socket.SendAndLogMessage(server, fmt.Sprintf("ERR FILE TRANSFER: %s", err.Error()))
+	}
+}

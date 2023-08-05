@@ -5,6 +5,8 @@ import (
 	"crypto/tls"
 	"fmt"
 	"log"
+	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/thetredev/steamcmd-cli/shared"
@@ -59,20 +61,41 @@ func SendMessage(message string, args ...string) {
 	sendMessageToSocket(socket, message, args...)
 	reader := bufio.NewReader(socket)
 
+	download := false
+
 	for {
-		buffer := make([]byte, 2048)
-		_, err := reader.Read(buffer)
+		count, buffer, err := shared.ReadBuffer(reader, 256)
 
 		if err != nil {
+			fmt.Printf("ERR SOCKET READ: %s\n", err.Error())
 			break
 		}
 
-		message := string(buffer)
+		if count == 0 {
+			break
+		}
+
+		message := strings.Split(string(buffer[:count]), "\n")[0]
 
 		if strings.HasPrefix(message, shared.MESSAGE_SOCKET_END) {
 			break
+		} else if strings.HasPrefix(message, shared.MESSAGE_SERVER_FILE_TRANSFER_START) {
+			download = true
+
+			fileInfo := strings.Split(message, ";")[1:]
+			filePath := filepath.Join(args[1], fileInfo[0])
+			fileSize, err := strconv.ParseInt(fileInfo[1], 10, 64)
+
+			if err != nil {
+				fmt.Printf("ERR FILE SIZE CONV: %s\n", err.Error())
+				break
+			}
+
+			shared.ReceiveFile(reader, filePath, fileSize)
+		} else if download {
+			download = false
 		} else {
-			fmt.Print(message)
+			fmt.Println(message)
 		}
 	}
 

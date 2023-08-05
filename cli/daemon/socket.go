@@ -60,12 +60,16 @@ func NewSocket() *Socket {
 	}
 }
 
-func (socket *Socket) SendMessage(message string) {
-	_, err := socket.Connection.Write([]byte(fmt.Sprintln(message)))
+func (socket *Socket) SendBytes(bytes []byte) {
+	_, err := socket.Connection.Write(bytes)
 
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func (socket *Socket) SendMessage(message string) {
+	socket.SendBytes([]byte(fmt.Sprintln(message)))
 }
 
 func (socket *Socket) SendAndLogMessage(server *Server, message string) {
@@ -173,6 +177,18 @@ func handleSpecialMessage(serverInstance *Server, socket *Socket, message string
 		}
 
 		serverInstance.ListFiles(socket, rootPath)
+		return true
+	}
+
+	if strings.HasPrefix(message, shared.MESSAGE_SERVER_FILES_DOWNLOAD) {
+		args := strings.Split(message, " ")
+
+		if len(args) > 1 {
+			serverInstance.TransferFile(socket, args[1])
+		} else {
+			socket.SendAndLogMessage(serverInstance, "Ignoring: Nothing to download.")
+		}
+
 		return true
 	}
 
