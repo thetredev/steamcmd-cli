@@ -51,9 +51,9 @@ $ export STEAMCMD_SERVER_MAXPLAYERS=16
 # fps_max is not necessary, but you can set it as well:
 $ export STEAMCMD_SERVER_FPSMAX=300
 
-# start the daemon on default port 65000
+# start the daemon on default port 27015
 $ steamcmd-cli daemon
-2023/08/02 19:15:28 Listening for incoming requests on port 65000/TCP...
+2023/08/02 19:15:28 Listening for incoming requests on port 27015/TCP...
 ```
 
 Start up another shell and use the client:
@@ -64,7 +64,7 @@ Start up another shell and use the client:
 $ export STEAMCMD_CLI_SOCKET_IP=127.0.0.1
 
 # optionally set the port as well (this is only needed if the same was passed to the daemon):
-$ export STEAMCMD_CLI_SOCKET_PORT=65000
+$ export STEAMCMD_CLI_SOCKET_PORT=27015
 
 # update the server
 $ steamcmd-cli server update
@@ -286,7 +286,7 @@ The containers can now be run locally:
 ```
 # Daemon
 $ docker run --rm -v $(pwd)/certs:/certs:ro github.com/thetredev/steamcmd-cli:daemon
-2023/08/02 21:35:44 Listening for incoming requests on port 65000/TCP...
+2023/08/02 21:35:44 Listening for incoming requests on port 27015/TCP...
 
 # CLI
 $ docker run --rm -v $(pwd)/certs:/certs:ro github.com/thetredev/steamcmd-cli:latest
@@ -494,7 +494,7 @@ $ docker run --rm \
   -v $(pwd)/certs:/certs:ro \
   -v /tmp/srcds/css:/steamcmd/server \
   -p 27015:27015/udp \
-  -p 65000:65000/tcp \
+  -p 27015:27015/tcp \
   -e STEAMCMD_SERVER_MAP=de_dust2 \
   -e STEAMCMD_SERVER_MAXPLAYERS=16 \
   -e STEAMCMD_SERVER_APPID=232330 \
