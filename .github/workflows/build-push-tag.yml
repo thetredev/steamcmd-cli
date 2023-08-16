@@ -1,0 +1,70 @@
+name: Reusable workflow for building and pushing images
+
+on:
+  workflow_call:
+    inputs:
+      push:
+        required: true
+        type: boolean
+      tag:
+        required: true
+        type: boolean
+
+env:
+  DOCKER_BUILDKIT: 1
+  REGISTRY_IMAGE: "${{ github.repository_owner }}/${{ github.event.repository.name }}"
+  GHCR_PREFIX: "ghcr.io"
+  #DOCKER_HUB_PREFIX: "docker.io"
+
+jobs:
+  build-scan-push-tag:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v3
+        if: ${{ inputs.push }}
+
+      - name: Build all images
+        if: ${{ inputs.push }}
+        run: ./build_docker.sh
+
+      - name: Log in to GHCR
+        if: ${{ inputs.push || inputs.tag }}
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # - name: Login to Docker Hub
+      #   if: ${{ inputs.push || inputs.tag }}
+      #   uses: docker/login-action@v2
+      #   with:
+      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #     password: ${{ secrets.DOCKERHUB_ACCESS }}
+
+      - name: Push latest images to registries
+        if: ${{ inputs.push }}
+        run: |
+          cli_image=$(grep "CLI_IMAGE=" Dockerfile.daemon | head -1 | cut -d '=' -f 2)
+          daemon_image=$(echo "${cli_image}" | sed 's/:latest/:daemon/')
+
+          docker tag ${cli_image} ${GHCR_PREFIX}/${REGISTRY_IMAGE}/cli:latest
+          docker tag ${daemon_image} ${GHCR_PREFIX}/${REGISTRY_IMAGE}/daemon:latest
+
+          docker push ${GHCR_PREFIX}/${REGISTRY_IMAGE}/cli:latest
+          docker push ${GHCR_PREFIX}/${REGISTRY_IMAGE}/daemon:latest
+
+      - name: Push tagged images to registries
+        if: ${{ inputs.tag }}
+        run: |
+          docker pull ${GHCR_PREFIX}/${REGISTRY_IMAGE}/cli:latest
+          docker pull ${GHCR_PREFIX}/${REGISTRY_IMAGE}/daemon:latest
+
+          docker tag ${GHCR_PREFIX}/${REGISTRY_IMAGE}/cli:latest ${GHCR_PREFIX}/${REGISTRY_IMAGE}/cli:${{ github.ref_name }}
+          docker tag ${GHCR_PREFIX}/${REGISTRY_IMAGE}/daemon:latest ${GHCR_PREFIX}/${REGISTRY_IMAGE}/daemon:${{ github.ref_name }}
+
+          docker push ${GHCR_PREFIX}/${REGISTRY_IMAGE}/cli:${{ github.ref_name }}
+          docker push ${GHCR_PREFIX}/${REGISTRY_IMAGE}/daemon:${{ github.ref_name }}

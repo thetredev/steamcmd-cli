@@ -1,0 +1,14 @@
+name: Docker build and publish latest
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  push:
+    uses: thetredev/steamcmd-cli/.github/workflows/build-push-tag.yml@main
+    with:
+      push: true
+      tag: false
+    secrets: inherit
