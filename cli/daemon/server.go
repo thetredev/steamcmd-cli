@@ -198,6 +198,9 @@ func (server *Server) Start(socket *Socket) error {
 		return err
 	}
 
+	// Remove bundled libgcc because it's completely unreliable
+	os.Remove(fmt.Sprintf("%s/bin/libgcc_s.so.1", Config.ServerHome))
+
 	server.Logger.Println("Starting game server...")
 
 	server.Command = exec.Command(

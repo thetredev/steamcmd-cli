@@ -45,6 +45,7 @@ RUN cp /lib/i386-linux-gnu/libgcc_s.so.1 ./libgcc_s.so.1
 RUN cp /lib/i386-linux-gnu/libtinfo.so.6.* ./libtinfo.so.5
 RUN cp /lib/i386-linux-gnu/libncurses.so.6.* ./libncurses.so.5
 RUN cp /usr/lib/i386-linux-gnu/librt.so.1 ./librt.so.1
+RUN cp /usr/lib/i386-linux-gnu/libstdc++.so.6.* ./libstdc++.so.6
 
 WORKDIR /steamcmd-home/.steam
 RUN ln -sf ${STEAMCMD_PACKAGE_DIR}/linux32 $(pwd)/sdk32
@@ -68,7 +69,6 @@ FROM ${RUNTIME_BUILDER_IMAGE} AS runtime_builder
 WORKDIR /steamcmd-libs
 RUN cp /usr/lib/i386-linux-gnu/libSDL2*.so.0.* .
 RUN for _lib in $(ls -1); do ln -sf $_lib $(pwd)/$(echo $_lib | grep -o '.*\.so'); done
-RUN cp /usr/lib/i386-linux-gnu/libstdc++.so.6.* ./libstdc++.so.6
 
 
 FROM ${GLIBC_BUILDER_IMAGE} AS glibc_builder
