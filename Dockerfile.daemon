@@ -7,7 +7,6 @@ ARG CLI_IMAGE=github.com/thetredev/steamcmd-cli:latest
 
 ARG STEAMCMD_BUILDER_IMAGE=i386/debian:bookworm-20230725-slim
 ARG RUNTIME_BUILDER_IMAGE=registry.gitlab.steamos.cloud/steamrt/sniper/platform:0.20230718.55074
-ARG GLIBC_BUILDER_IMAGE=i386/busybox:1.36.1-glibc
 
 
 FROM ${GO_IMAGE} AS docker_builder
@@ -44,8 +43,18 @@ RUN cp /lib/i386-linux-gnu/libdl.so.2 ./libdl.so.2
 RUN cp /lib/i386-linux-gnu/libgcc_s.so.1 ./libgcc_s.so.1
 RUN cp /lib/i386-linux-gnu/libtinfo.so.6.* ./libtinfo.so.5
 RUN cp /lib/i386-linux-gnu/libncurses.so.6.* ./libncurses.so.5
+RUN cp /lib/i386-linux-gnu/libnss_compat.so.2 ./libnss_compat.so.2
+RUN cp /lib/i386-linux-gnu/libnss_dns.so.2 ./libnss_dns.so.2
+RUN cp /lib/i386-linux-gnu/libnss_files.so.2 ./libnss_files.so.2
+RUN cp /lib/i386-linux-gnu/libnss_hesiod.so.2 ./libnss_hesiod.so.2
+RUN cp /lib/i386-linux-gnu/libnss_hesiod.so.2 ./libnss_hesiod.so.2
+RUN cp /lib/i386-linux-gnu/libpthread.so.0 ./libpthread.so.0
+RUN cp /lib/i386-linux-gnu/libresolv.so.2 ./libresolv.so.2
 RUN cp /usr/lib/i386-linux-gnu/librt.so.1 ./librt.so.1
+RUN cp /usr/lib/i386-linux-gnu/libc.so.6 ./libc.so.6
+RUN cp /usr/lib/i386-linux-gnu/libm.so.6 ./libm.so.6
 RUN cp /usr/lib/i386-linux-gnu/libstdc++.so.6.* ./libstdc++.so.6
+RUN cp /lib/i386-linux-gnu/ld-linux.so.2 ./ld-linux.so.2
 
 WORKDIR /steamcmd-home/.steam
 RUN ln -sf ${STEAMCMD_PACKAGE_DIR}/linux32 $(pwd)/sdk32
@@ -71,10 +80,7 @@ RUN cp /usr/lib/i386-linux-gnu/libSDL2*.so.0.* .
 RUN for _lib in $(ls -1); do ln -sf $_lib $(pwd)/$(echo $_lib | grep -o '.*\.so'); done
 
 
-FROM ${GLIBC_BUILDER_IMAGE} AS glibc_builder
 FROM ${CLI_IMAGE} AS cli_builder
-
-
 FROM scratch
 
 ARG HOME
@@ -103,8 +109,7 @@ COPY --from=steamcmd_builder /steamcmd-passwd/* /etc
 COPY --chown=steamcmd:steamcmd --from=steamcmd_builder /steamcmd ${STEAMCMD_PACKAGE_DIR}
 COPY --chown=steamcmd:steamcmd --from=steamcmd_builder /steamcmd-home ${HOME}
 
-COPY --from=glibc_builder /lib /lib
-COPY --from=steamcmd_builder /steamcmd-libs/* /lib
+COPY --from=steamcmd_builder /steamcmd-libs /lib
 COPY --from=runtime_builder /steamcmd-libs/* /lib
 
 COPY --from=cli_builder /bin/steamcmd-cli /bin/steamcmd-cli
